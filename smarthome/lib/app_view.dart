@@ -14,7 +14,7 @@ class MyAppView extends StatelessWidget {
             surface: const Color.fromARGB(255, 244, 243, 243),
             // surface:  const Color(0xFF10493f),
             onSurface: Color.fromARGB(255, 20, 37, 63),
-            primary: const Color(0xFF10493f),
+            primary: const Color(0xFFff7c7c),
             secondary: Colors.white,
             tertiary: const Color(0xFF7A7A7A)),
       ),

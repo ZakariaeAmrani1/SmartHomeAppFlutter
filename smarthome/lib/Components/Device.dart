@@ -43,7 +43,7 @@ class _DeviceState extends State<Device> {
               padding: EdgeInsets.all(16), // Padding inside of the card
               color: Colors.white, // Color of the card
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)), // Shape of the card
-              elevation: 2, // Elevation of the card
+              elevation: 1, // Elevation of the card
               tag: widget.device.id, // MUST BE THE SAME AS IN `PopupItemLauncher`
               child: DeviceScreen(device: widget.device,), // Your custom child widget.
             ),

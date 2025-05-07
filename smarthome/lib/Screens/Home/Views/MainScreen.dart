@@ -48,7 +48,7 @@ class _MainscreenState extends State<Mainscreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(15),
                             color: Colors.white
                           ),
                           child: Icon(CupertinoIcons.settings, color: Theme.of(context).colorScheme.tertiary, size: 22,),

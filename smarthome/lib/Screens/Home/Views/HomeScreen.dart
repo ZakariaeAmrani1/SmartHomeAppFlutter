@@ -38,16 +38,16 @@ class _MyWidgetState extends State<HomeScreen> {
                     icon: Icon(
                       CupertinoIcons.home,
                       color: index == 0
-                          ? Theme.of(context).colorScheme.primary
+                          ? Theme.of(context).colorScheme.onSurface
                           : Colors.grey.shade400,
                     ),
                     label: "Home",
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(
-                      CupertinoIcons.device_laptop,
+                      Icons.devices,
                       color: index == 1
-                          ? Theme.of(context).colorScheme.primary
+                          ? Theme.of(context).colorScheme.onSurface
                           : Colors.grey.shade400,
                     ),
                     label: "Stats",
@@ -78,18 +78,13 @@ class _MyWidgetState extends State<HomeScreen> {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 child: const Icon(
-                  CupertinoIcons.qrcode_viewfinder,
+                  CupertinoIcons.add,
                 ),
               ),
             ),
             body: index == 0
                 ? Mainscreen()
                 : Scaffold()
-            //     : index == 1
-            //     ? Scaffold():
-            //     index == 2
-            //     ? ChatScreen()
-            //     :Scaffold(),
     );
   }
 }

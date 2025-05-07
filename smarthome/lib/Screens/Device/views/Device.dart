@@ -22,7 +22,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
     'Air Cooler',
     'Air Heating',
   ];
-  String? selectedValue;
+  String selectedMode = "Air Cooler";
   @override
   void initState() {
     super.initState();
@@ -109,8 +109,74 @@ class _DeviceScreenState extends State<DeviceScreen> {
               },
           ),
           SizedBox(height: 10,),
-          Text("Mode", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.tertiary),),
-         
+          Text("Air Modes", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.tertiary),),
+          SizedBox(height: 10,),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15), 
+            ),
+             child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  GestureDetector(
+                    onTap: () => {
+                       setState(() {
+                        selectedMode = "Air Fan";
+                      })
+                    },
+                    child: Container(
+                      padding: EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15),
+                      decoration: BoxDecoration(
+                        color: selectedMode == "Air Fan" ? Color(int.parse(widget.device.color.replaceFirst('#', '0xFF'))) : Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text("Air Fan", style: TextStyle(
+                        color: selectedMode == "Air Fan" ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.bold
+                      ),),
+                    ),
+                  ),
+                 GestureDetector(
+                    onTap: () => {
+                       setState(() {
+                        selectedMode = "Air Cooler";
+                      })
+                    },
+                    child: Container(
+                      padding: EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15),
+                      decoration: BoxDecoration(
+                        color: selectedMode == "Air Cooler" ? Color.fromARGB(255, 256,228,228) : Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text("Air Cooler", style: TextStyle(
+                        color: selectedMode == "Air Cooler" ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.bold
+                      ),),
+                    ),
+                  ),
+                   GestureDetector(
+                    onTap: () => {
+                       setState(() {
+                        selectedMode = "Air Heating";
+                      })
+                    },
+                    child: Container(
+                      padding: EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15),
+                      decoration: BoxDecoration(
+                        color: selectedMode == "Air Heating" ? Color(0XFFffdc6c) : Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text("Air Heating", style: TextStyle(
+                        color: selectedMode == "Air Heating" ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.bold
+                      ),),
+                    ),
+                  ),
+                ],
+              ),
+           ),
           SizedBox(height: 30,),
           Container(
             decoration: BoxDecoration(

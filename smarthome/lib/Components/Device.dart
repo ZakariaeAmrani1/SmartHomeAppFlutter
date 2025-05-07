@@ -29,7 +29,7 @@ class _DeviceState extends State<Device> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(left: 6,  right: 6, bottom: 20),
+      padding: EdgeInsets.only(left: 8,  right: 8, bottom: 20),
       decoration: BoxDecoration(
         color: Color(int.parse(widget.device.color.replaceFirst('#', '0xFF'))),
         borderRadius: BorderRadius.circular(35),
@@ -55,7 +55,7 @@ class _DeviceState extends State<Device> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Image(
-                    image: AssetImage(widget.device.imageUrl),
+                    image: widget.device.state ? AssetImage(widget.device.imageUrl1) : AssetImage(widget.device.imageUrl),
                     width: 30,
                     ),
                 ),

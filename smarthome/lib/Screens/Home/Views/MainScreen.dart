@@ -75,8 +75,8 @@ class _MainscreenState extends State<Mainscreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Device(device: DeviceModel(id: devicesData[0]['id'],name: devicesData[0]['name'],imageUrl: devicesData[0]['imageUrl'], color: devicesData[0]['color'], state:  devicesData[0]['state']),),
-                  Device(device: DeviceModel(id: devicesData[1]['id'],name: devicesData[1]['name'],imageUrl: devicesData[1]['imageUrl'], color: devicesData[1]['color'], state:  devicesData[1]['state']),),
+                  Device(device: DeviceModel(id: devicesData[0]['id'],name: devicesData[0]['name'],imageUrl: devicesData[0]['imageUrl'], imageUrl1: devicesData[0]['imageUrl1'], color: devicesData[0]['color'], state:  devicesData[0]['state']),),
+                  Device(device: DeviceModel(id: devicesData[1]['id'],name: devicesData[1]['name'],imageUrl: devicesData[1]['imageUrl'], imageUrl1: devicesData[0]['imageUrl1'], color: devicesData[1]['color'], state:  devicesData[1]['state']),),
                 ],
                ),
                SizedBox(height: 10,),

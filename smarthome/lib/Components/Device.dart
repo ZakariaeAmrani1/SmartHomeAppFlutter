@@ -29,6 +29,7 @@ class _DeviceState extends State<Device> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: MediaQuery.of(context).size.width/2.2,
       padding: EdgeInsets.only(left: 8,  right: 8, bottom: 20),
       decoration: BoxDecoration(
         color: Color(int.parse(widget.device.color.replaceFirst('#', '0xFF'))),

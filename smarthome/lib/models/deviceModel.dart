@@ -1,5 +1,6 @@
 class DeviceModel {
   final int id;
+  final int typeId;
   final String name;
   final String imageUrl;
   final String imageUrl1;
@@ -8,6 +9,7 @@ class DeviceModel {
 
   DeviceModel({
     required this.id,
+    required this.typeId,
     required this.name,
     required this.imageUrl,
     required this.imageUrl1,

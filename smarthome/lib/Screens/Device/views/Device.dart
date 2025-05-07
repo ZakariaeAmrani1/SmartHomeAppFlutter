@@ -5,6 +5,9 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
+import 'package:smarthome/Components/AcSettings.dart';
+import 'package:smarthome/Components/LightSettings.dart';
+import 'package:smarthome/Components/RgbLightSettings.dart';
 import 'package:smarthome/models/deviceModel.dart';
 
 class DeviceScreen extends StatefulWidget {
@@ -58,125 +61,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
               ],
             ),
             SizedBox(height: 30,),
-            SleekCircularSlider(
-              min: 16,
-              max: 32,
-              initialValue: 26,
-              appearance: CircularSliderAppearance(
-                customColors: CustomSliderColors(
-                  progressBarColor: Color(int.parse(widget.device.color.replaceFirst('#', '0xFF'))),
-                  dotColor: Color(int.parse(widget.device.color.replaceFirst('#', '0xFF'))),
-                  trackColor: Theme.of(context).colorScheme.surface,
-                  hideShadow: true,
-                ),
-                  customWidths: CustomSliderWidths(
-                  progressBarWidth: 10,
-                  trackWidth: 10,
-                  handlerSize: 10,
-                ),
-                size: 200,
-                angleRange: 270,
-                startAngle: 135,
-              ),
-              innerWidget: (value) {
-                return Center(
-                  child: Container(
-                    padding: EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Container(
-                      padding: EdgeInsets.all(30),
-                      decoration: BoxDecoration(
-                        color: Color(int.parse(widget.device.color.replaceFirst('#', '0xFF'))),
-                        shape: BoxShape.circle
-                      ),
-                      child: Text(
-                        '${value.toInt()}°',
-                        style: const TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-              onChange: (value) {
-                // Optional: handle value change
-              },
-          ),
-          SizedBox(height: 10,),
-          Text("Air Modes", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.tertiary),),
-          SizedBox(height: 10,),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15), 
-            ),
-             child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  GestureDetector(
-                    onTap: () => {
-                       setState(() {
-                        selectedMode = "Air Fan";
-                      })
-                    },
-                    child: Container(
-                      padding: EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15),
-                      decoration: BoxDecoration(
-                        color: selectedMode == "Air Fan" ? Color(int.parse(widget.device.color.replaceFirst('#', '0xFF'))) : Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text("Air Fan", style: TextStyle(
-                        color: selectedMode == "Air Fan" ? Colors.white : Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.bold
-                      ),),
-                    ),
-                  ),
-                 GestureDetector(
-                    onTap: () => {
-                       setState(() {
-                        selectedMode = "Air Cooler";
-                      })
-                    },
-                    child: Container(
-                      padding: EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15),
-                      decoration: BoxDecoration(
-                        color: selectedMode == "Air Cooler" ? Color.fromARGB(255, 256,228,228) : Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text("Air Cooler", style: TextStyle(
-                        color: selectedMode == "Air Cooler" ? Colors.white : Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.bold
-                      ),),
-                    ),
-                  ),
-                   GestureDetector(
-                    onTap: () => {
-                       setState(() {
-                        selectedMode = "Air Heating";
-                      })
-                    },
-                    child: Container(
-                      padding: EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15),
-                      decoration: BoxDecoration(
-                        color: selectedMode == "Air Heating" ? Color(0XFFffdc6c) : Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text("Air Heating", style: TextStyle(
-                        color: selectedMode == "Air Heating" ? Colors.white : Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.bold
-                      ),),
-                    ),
-                  ),
-                ],
-              ),
-           ),
+          widget.device.typeId == 1 ? Acsettings(device: widget.device) 
+          : widget.device.typeId == 2 ? Lightsettings(device: widget.device)
+          : Rgblightsettings(device: widget.device),
           SizedBox(height: 30,),
           Container(
             decoration: BoxDecoration(

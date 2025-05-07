@@ -32,12 +32,12 @@ class _MainscreenState extends State<Mainscreen> {
                               alignment: Alignment.center,
                               children: [
                                 Container(
-                                  width: 50,
-                                  height: 50,
+                                  padding: EdgeInsets.all(6),
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: Colors.yellow[800],
                                   ),
+                                  child: Image( image: user.gender == "male" ? AssetImage('assets/images/male.png') : AssetImage('assets/images/woman.png') , width:40,),
                                 ),
                               ],
                             ),
@@ -51,7 +51,7 @@ class _MainscreenState extends State<Mainscreen> {
                             shape: BoxShape.circle,
                             color: Colors.white
                           ),
-                          child: Icon(CupertinoIcons.profile_circled, color: Theme.of(context).colorScheme.tertiary, size: 22,),
+                          child: Icon(CupertinoIcons.settings, color: Theme.of(context).colorScheme.tertiary, size: 22,),
                         ),
                       ],
                     ),
@@ -71,16 +71,56 @@ class _MainscreenState extends State<Mainscreen> {
                  ],
                ),
                SizedBox(height: 20,),
-               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Device(device: DeviceModel(id: devicesData[0]['id'],name: devicesData[0]['name'],imageUrl: devicesData[0]['imageUrl'], imageUrl1: devicesData[0]['imageUrl1'], color: devicesData[0]['color'], state:  devicesData[0]['state']),),
-                  Device(device: DeviceModel(id: devicesData[1]['id'],name: devicesData[1]['name'],imageUrl: devicesData[1]['imageUrl'], imageUrl1: devicesData[0]['imageUrl1'], color: devicesData[1]['color'], state:  devicesData[1]['state']),),
-                ],
-               ),
-               SizedBox(height: 10,),
-                
+            Expanded(
+              child: ListView.builder(
+                itemCount: (devicesData.length / 2).ceil(), // Number of rows
+                itemBuilder: (context, index) {
+                  int firstIndex = index * 2;
+                  int secondIndex = firstIndex + 1;
+
+                  return Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Device(
+                              device: DeviceModel(
+                                id: devicesData[firstIndex]['id'],
+                                typeId: devicesData[firstIndex]['type_id'],
+                                name: devicesData[firstIndex]['name'],
+                                imageUrl: devicesData[firstIndex]['imageUrl'],
+                                imageUrl1: devicesData[firstIndex]['imageUrl1'],
+                                color: devicesData[firstIndex]['color'],
+                                state: devicesData[firstIndex]['state'],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          if (secondIndex < devicesData.length)
+                            Expanded(
+                              child: Device(
+                                device: DeviceModel(
+                                  id: devicesData[secondIndex]['id'],
+                                  typeId: devicesData[firstIndex]['type_id'],
+                                  name: devicesData[secondIndex]['name'],
+                                  imageUrl: devicesData[secondIndex]['imageUrl'],
+                                  imageUrl1: devicesData[secondIndex]['imageUrl1'],
+                                  color: devicesData[secondIndex]['color'],
+                                  state: devicesData[secondIndex]['state'],
+                                ),
+                              ),
+                            )
+                          else
+                            Expanded(child: Container()), // empty placeholder for uneven items
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  );
+                },
+              ),
+            ),
             ],
           ),
       ),

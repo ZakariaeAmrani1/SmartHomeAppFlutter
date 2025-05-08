@@ -10,8 +10,8 @@ import 'package:smarthome/data/devices.dart';
 import 'package:smarthome/models/deviceModel.dart';
 
 class Mainscreen extends StatefulWidget {
-  const Mainscreen({super.key});
-
+  const Mainscreen({super.key, required this.devices});
+  final List<DeviceModel> devices;
   @override
   State<Mainscreen> createState() => _MainscreenState();
 }
@@ -137,7 +137,7 @@ class _MainscreenState extends State<Mainscreen> {
                SizedBox(height: 20,),
             Expanded(
               child: ListView.builder(
-                itemCount: (devicesData.length / 2).ceil(), // Number of rows
+                itemCount: (widget.devices.length / 2).ceil(), // Number of rows
                 itemBuilder: (context, index) {
                   int firstIndex = index * 2;
                   int secondIndex = firstIndex + 1;
@@ -150,28 +150,30 @@ class _MainscreenState extends State<Mainscreen> {
                           Expanded(
                             child: Device(
                               device: DeviceModel(
-                                id: devicesData[firstIndex]['id'],
-                                typeId: devicesData[firstIndex]['type_id'],
-                                name: devicesData[firstIndex]['name'],
-                                imageUrl: devicesData[firstIndex]['imageUrl'],
-                                imageUrl1: devicesData[firstIndex]['imageUrl1'],
-                                color: devicesData[firstIndex]['color'],
-                                state: devicesData[firstIndex]['state'],
+                                id: widget.devices[firstIndex].id,
+                                typeId: widget.devices[firstIndex].typeId,
+                                name: widget.devices[firstIndex].name,
+                                imageUrl: widget.devices[firstIndex].imageUrl,
+                                imageUrl1: widget.devices[firstIndex].imageUrl1,
+                                color: widget.devices[firstIndex].color,
+                                state: widget.devices[firstIndex].state,
+                                port:  widget.devices[firstIndex].port,
                               ),
                             ),
                           ),
                           const SizedBox(width: 10),
-                          if (secondIndex < devicesData.length)
+                          if (secondIndex < widget.devices.length)
                             Expanded(
                               child: Device(
                                 device: DeviceModel(
-                                  id: devicesData[secondIndex]['id'],
-                                  typeId: devicesData[firstIndex]['type_id'],
-                                  name: devicesData[secondIndex]['name'],
-                                  imageUrl: devicesData[secondIndex]['imageUrl'],
-                                  imageUrl1: devicesData[secondIndex]['imageUrl1'],
-                                  color: devicesData[secondIndex]['color'],
-                                  state: devicesData[secondIndex]['state'],
+                                  id: widget.devices[secondIndex].id,
+                                  typeId: widget.devices[secondIndex].typeId,
+                                  name: widget.devices[secondIndex].name,
+                                  imageUrl: widget.devices[secondIndex].imageUrl,
+                                  imageUrl1: widget.devices[secondIndex].imageUrl1,
+                                  color: widget.devices[secondIndex].color,
+                                  state: widget.devices[secondIndex].state,
+                                  port:  widget.devices[secondIndex].port,
                                 ),
                               ),
                             )

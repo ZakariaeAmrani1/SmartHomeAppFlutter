@@ -1,11 +1,34 @@
-class DeviceModel {
-  final int id;
-  final int typeId;
-  final String name;
-  final String imageUrl;
-  final String imageUrl1;
-  final String color;
-  final bool state;
+
+
+import 'package:hive/hive.dart';
+
+part 'deviceModel.g.dart';// Required for the generated adapter
+
+@HiveType(typeId: 0)
+class DeviceModel extends HiveObject {
+  @HiveField(0)
+   int id;
+
+  @HiveField(1)
+   int typeId;
+
+  @HiveField(2)
+   String name;
+
+  @HiveField(3)
+   String imageUrl;
+
+  @HiveField(4)
+   String imageUrl1;
+
+  @HiveField(5)
+   String color;
+
+  @HiveField(6)
+   bool state;
+
+  @HiveField(7)
+   int? port;
 
   DeviceModel({
     required this.id,
@@ -14,6 +37,7 @@ class DeviceModel {
     required this.imageUrl,
     required this.imageUrl1,
     required this.color,
-    required this.state
+    required this.state,
+    required this.port,
   });
 }

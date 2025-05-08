@@ -1,6 +1,12 @@
+import 'package:alert_info/alert_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:smarthome/Screens/Device/views/AddDevice.dart';
+import 'package:smarthome/Screens/Device/views/DevicesList.dart';
 import 'package:smarthome/Screens/Home/Views/MainScreen.dart';
+import 'package:smarthome/data/devices.dart';
+import 'package:smarthome/models/deviceModel.dart';
 
 
 
@@ -12,7 +18,65 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _MyWidgetState extends State<HomeScreen> {
+
   int index = 0;
+  late List<DeviceModel> devices;
+
+   void onDeviceInsert(DeviceModel device) async {
+      final box = Hive.box<DeviceModel>('devicesBox');
+
+      // Auto-increment ID logic
+      final newId = box.isEmpty
+          ? 1
+          : box.values.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1;
+
+      // Create a NEW instance with copied values and new ID
+      final newDevice = DeviceModel(
+        id: newId,
+        typeId: device.typeId,
+        name: device.name,
+        imageUrl: device.imageUrl,
+        imageUrl1: device.imageUrl1,
+        color: device.color,
+        state: device.state,
+        port: device.port,
+      );
+
+      await box.add(newDevice);
+
+      setState(() {
+        devices = box.values.toList();
+      });
+
+      AlertInfo.show(
+        context: context,
+        text: 'Device Added.',
+        typeInfo: TypeInfo.success,
+        backgroundColor: Colors.white,
+        textColor: Colors.grey.shade800,
+      );
+    }
+
+  void saveDevice(DeviceModel newDevice) {
+    Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
+    final int newId = box.isEmpty
+      ? 1
+      : box.values.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1;
+    newDevice.id = newId;
+    box.add(newDevice);
+    //  box.deleteAt(0);
+  }
+
+
+  @override
+  void initState(){
+    super.initState();
+    Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
+    devices = box.values.toList();
+    // box.deleteAt(2);
+    print((devices[1].name));
+  }
+
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
@@ -60,13 +124,13 @@ class _MyWidgetState extends State<HomeScreen> {
             floatingActionButton: FloatingActionButton(
               heroTag: "fab1",
               onPressed: () {
-                  // Navigator.push(
-                  // context,
-                  // MaterialPageRoute<void>(
-                  //   builder: (BuildContext context) =>
-                  //       AddPlant(),
-                  // ),
-                  // );
+                  Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (BuildContext context) =>
+                        Adddevice(onDeviceInsert: onDeviceInsert),
+                  ),
+                  );
               },
               shape: const CircleBorder(),
               child: Container(
@@ -83,8 +147,8 @@ class _MyWidgetState extends State<HomeScreen> {
               ),
             ),
             body: index == 0
-                ? Mainscreen()
-                : Scaffold()
+                ? Mainscreen(devices: devices,)
+                : Deviceslist(devices: devices,)
     );
   }
 }

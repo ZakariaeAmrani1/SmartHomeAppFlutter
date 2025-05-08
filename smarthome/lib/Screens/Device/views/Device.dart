@@ -1,10 +1,8 @@
 import 'dart:math';
 
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 import 'package:smarthome/Components/AcSettings.dart';
 import 'package:smarthome/Components/LightSettings.dart';
 import 'package:smarthome/Components/RgbLightSettings.dart';

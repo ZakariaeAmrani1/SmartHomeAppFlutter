@@ -1,10 +1,10 @@
 
 
 class Usermodel {
-  final String username;
-  final String email;
-  final String phonenumber;
-  final String gender;
+   String username;
+   String email;
+   String phonenumber;
+   String gender;
   // final String imageUrl;
 
   Usermodel({

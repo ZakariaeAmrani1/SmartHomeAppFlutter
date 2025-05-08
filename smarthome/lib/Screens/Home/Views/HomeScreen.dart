@@ -74,7 +74,6 @@ class _MyWidgetState extends State<HomeScreen> {
     Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
     devices = box.values.toList();
     // box.deleteAt(2);
-    print((devices[1].name));
   }
 
   @override

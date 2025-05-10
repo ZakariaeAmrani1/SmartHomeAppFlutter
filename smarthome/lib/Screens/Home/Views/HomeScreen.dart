@@ -2,6 +2,7 @@ import 'package:alert_info/alert_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:smarthome/Screens/Device/views/AddDevice.dart';
 import 'package:smarthome/Screens/Device/views/DevicesList.dart';
 import 'package:smarthome/Screens/Home/Views/MainScreen.dart';
@@ -56,6 +57,43 @@ class _MyWidgetState extends State<HomeScreen> {
         textColor: Colors.grey.shade800,
       );
     }
+    void onDeviceDelete(int index) async {
+      final box = Hive.box<DeviceModel>('devicesBox');
+       box.deleteAt(index);
+      setState(() {
+        devices = box.values.toList();
+      });
+
+      AlertInfo.show(
+        context: context,
+        text: 'Device Deleted.',
+        typeInfo: TypeInfo.success,
+        backgroundColor: Colors.white,
+        textColor: Colors.grey.shade800,
+      );
+    }
+
+    void onDeviceUpdate(bool state, int index) async {
+      final box = Hive.box<DeviceModel>('devicesBox');
+      DeviceModel device = box.getAt(index)!;
+      device.state = state;
+      await device.save();
+      Future<dynamic>.delayed(const Duration(seconds: 1));
+      state ? AlertInfo.show(
+        context: context,
+        text: 'Device Turned On.',
+        typeInfo: TypeInfo.success,
+        backgroundColor: Colors.white,
+        textColor: Colors.grey.shade800,
+      )
+      : AlertInfo.show(
+        context: context,
+        text: 'Device Turned Off.',
+        typeInfo: TypeInfo.success,
+        backgroundColor: Colors.white,
+        textColor: Colors.grey.shade800,
+      );
+    }
 
   void saveDevice(DeviceModel newDevice) {
     Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
@@ -86,7 +124,9 @@ class _MyWidgetState extends State<HomeScreen> {
         bottomNavigationBar: ClipRRect(
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(30)),
-              child: BottomNavigationBar(
+              child: 
+              BottomNavigationBar(
+                enableFeedback: false,
                 onTap: (value) {
                   setState(() {
                     index = value;
@@ -117,6 +157,33 @@ class _MyWidgetState extends State<HomeScreen> {
                   ),
                 ],
               ),
+              // SalomonBottomBar(
+              //   currentIndex: index,
+              //   itemPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+              //   backgroundColor: Theme.of(context).colorScheme.secondary,
+              //   onTap: (i) => setState(() => index = i),
+              //   items: [
+              //     /// Home
+              //     SalomonBottomBarItem(
+              //       icon: Icon(CupertinoIcons.home,
+              //        color: index == 0
+              //             ? Theme.of(context).colorScheme.onSurface
+              //             : Colors.grey.shade400,),
+              //       title: Text(""),
+              //       selectedColor: Theme.of(context).colorScheme.primary,
+              //     ),
+
+              //     /// Likes
+              //     SalomonBottomBarItem(
+              //       icon: Icon(Icons.devices,
+              //        color: index == 1
+              //             ? Theme.of(context).colorScheme.onSurface
+              //             : Colors.grey.shade400,),
+              //       title: Text(""),
+              //       selectedColor: Theme.of(context).colorScheme.primary,
+              //     ),
+              //   ],
+              // ),
             ),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
@@ -146,8 +213,8 @@ class _MyWidgetState extends State<HomeScreen> {
               ),
             ),
             body: index == 0
-                ? Mainscreen(devices: devices,)
-                : Deviceslist(devices: devices,)
+                ? Mainscreen(devices: devices, onDeviceUpdate: onDeviceUpdate,)
+                : Deviceslist(devices: devices, onDeviceDelete: onDeviceDelete,)
     );
   }
 }

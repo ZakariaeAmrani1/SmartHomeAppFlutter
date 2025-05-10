@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:smarthome/models/deviceModel.dart';
 
 class Deviceslist extends StatefulWidget {
-  const Deviceslist({super.key, required this.devices});
+  const Deviceslist({super.key, required this.devices, required this.onDeviceDelete});
   final List<DeviceModel> devices;
+  final Function(int index) onDeviceDelete;
   @override
   State<Deviceslist> createState() => _DeviceslistState();
 }
@@ -36,7 +37,7 @@ class _DeviceslistState extends State<Deviceslist> {
                     padding: const EdgeInsets.only(bottom: 12.0),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Color(int.parse(widget.devices[i].color.replaceFirst('#', '0xFF'))),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Padding(
@@ -48,13 +49,15 @@ class _DeviceslistState extends State<Deviceslist> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Container(
                                   alignment: Alignment.center,
                                   width: 50,
                                   height: 50,
                                   decoration: BoxDecoration(
-                                    color:  Colors.white,
+                                    color:  Color(int.parse(widget.devices[i].color.replaceFirst('#', '0xFF'))),
                                     borderRadius: BorderRadius.circular(15),
                                   ),
                                   child: Image(
@@ -65,17 +68,48 @@ class _DeviceslistState extends State<Deviceslist> {
                                 const SizedBox(
                                   width: 15,
                                 ),
-                                Text(
-                                  widget.devices[i].name,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color:
-                                        Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.devices[i].name,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color:
+                                            Colors.grey.shade700,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                     Text(
+                                      "Port :${widget.devices[i].port}",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color:
+                                            Colors.grey.shade700,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      textAlign: TextAlign.start,
+                                    ),
+                                  ],
                                 )
                               ],
                             ),
+                            GestureDetector(
+                              onTap: () async {
+                                widget.onDeviceDelete(i);
+                              },
+                              child: Container(
+                                  alignment: Alignment.center,
+                                  width: 45,
+                                  height: 45,
+                                  decoration: BoxDecoration(
+                                    color:  Colors.red,
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  child: Icon(CupertinoIcons.delete, color: Colors.white,),
+                                ),
+                            )
                           ],
                         ),
                       ),

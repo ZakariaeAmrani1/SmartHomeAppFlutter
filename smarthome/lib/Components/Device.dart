@@ -8,8 +8,10 @@ import 'package:smarthome/Screens/Device/views/Device.dart';
 import 'package:smarthome/models/deviceModel.dart';
 
 class Device extends StatefulWidget {
-  const Device({super.key, required this.device});
+  const Device({super.key,  required this.index, required this.device, required this.onDeviceUpdate});
   final DeviceModel device;
+  final Function( bool state, int index) onDeviceUpdate;
+  final int index;
   @override
   State<Device> createState() => _DeviceState();
 }
@@ -56,7 +58,7 @@ class _DeviceState extends State<Device> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Image(
-                    image: widget.device.state ? AssetImage(widget.device.imageUrl1) : AssetImage(widget.device.imageUrl),
+                    image: positive ? AssetImage(widget.device.imageUrl1) : AssetImage(widget.device.imageUrl),
                     width: 30,
                     ),
                 ),
@@ -96,7 +98,8 @@ class _DeviceState extends State<Device> {
                           Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.surface, global.position)),
               onChanged: (b) {
                 setState(() => positive = b);
-                return Future<dynamic>.delayed(const Duration(seconds: 2));
+                widget.onDeviceUpdate(b, widget.index);
+                return Future<dynamic>.delayed(const Duration(milliseconds: 80));
               },
               iconBuilder: (value) => value
                   ?  Icon(Icons.power_outlined,

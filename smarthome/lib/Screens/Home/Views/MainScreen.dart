@@ -10,8 +10,9 @@ import 'package:smarthome/data/devices.dart';
 import 'package:smarthome/models/deviceModel.dart';
 
 class Mainscreen extends StatefulWidget {
-  const Mainscreen({super.key, required this.devices});
+  const Mainscreen({super.key, required this.devices, required this.onDeviceUpdate});
   final List<DeviceModel> devices;
+  final Function(bool state, int index) onDeviceUpdate;
   @override
   State<Mainscreen> createState() => _MainscreenState();
 }
@@ -129,9 +130,13 @@ class _MainscreenState extends State<Mainscreen> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text("Good Morning ${user.username}", style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold),),
-                      Text("4 Devices are connected", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400, color: Theme.of(context).colorScheme.tertiary),),
+                      Text(widget.devices.isEmpty 
+                      ? "No Device is connected"
+                      : widget.devices.length ==  1
+                      ? "1 Device is connected"
+                      : "${widget.devices.length} Devices are connected", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400, color: Theme.of(context).colorScheme.tertiary),),
                     ],
-                                 ),
+                     ),
                  ],
                ),
                SizedBox(height: 20,),
@@ -149,6 +154,7 @@ class _MainscreenState extends State<Mainscreen> {
                         children: [
                           Expanded(
                             child: Device(
+                              index: firstIndex,
                               device: DeviceModel(
                                 id: widget.devices[firstIndex].id,
                                 typeId: widget.devices[firstIndex].typeId,
@@ -159,12 +165,14 @@ class _MainscreenState extends State<Mainscreen> {
                                 state: widget.devices[firstIndex].state,
                                 port:  widget.devices[firstIndex].port,
                               ),
+                              onDeviceUpdate: widget.onDeviceUpdate,
                             ),
                           ),
                           const SizedBox(width: 10),
                           if (secondIndex < widget.devices.length)
                             Expanded(
                               child: Device(
+                                index: secondIndex,
                                 device: DeviceModel(
                                   id: widget.devices[secondIndex].id,
                                   typeId: widget.devices[secondIndex].typeId,
@@ -175,6 +183,7 @@ class _MainscreenState extends State<Mainscreen> {
                                   state: widget.devices[secondIndex].state,
                                   port:  widget.devices[secondIndex].port,
                                 ),
+                                onDeviceUpdate: widget.onDeviceUpdate,
                               ),
                             )
                           else

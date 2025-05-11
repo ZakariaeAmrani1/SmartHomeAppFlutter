@@ -2,12 +2,14 @@ import 'package:alert_info/alert_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:lottie/lottie.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:smarthome/Screens/Device/views/AddDevice.dart';
 import 'package:smarthome/Screens/Device/views/DevicesList.dart';
 import 'package:smarthome/Screens/Home/Views/MainScreen.dart';
 import 'package:smarthome/data/devices.dart';
 import 'package:smarthome/models/deviceModel.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 
 
@@ -22,6 +24,8 @@ class _MyWidgetState extends State<HomeScreen> {
 
   int index = 0;
   late List<DeviceModel> devices;
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
 
    void onDeviceInsert(DeviceModel device) async {
       final box = Hive.box<DeviceModel>('devicesBox');
@@ -106,11 +110,33 @@ class _MyWidgetState extends State<HomeScreen> {
   }
 
 
+  void _listen() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (status) => print('Status: $status'),
+        onError: (error) => print('Error: $error'),
+      );
+      if (available) {
+        setState(() => _isListening = true);
+        _speech.listen(
+          onResult: (result) => setState(() {
+            print(result.recognizedWords);
+          }),
+        );
+      }
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
+    }
+  }
+
+
   @override
   void initState(){
     super.initState();
     Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
     devices = box.values.toList();
+    _speech = stt.SpeechToText();
     // box.deleteAt(2);
   }
 
@@ -190,26 +216,44 @@ class _MyWidgetState extends State<HomeScreen> {
             floatingActionButton: FloatingActionButton(
               heroTag: "fab1",
               onPressed: () {
-                  Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (BuildContext context) =>
-                        Adddevice(onDeviceInsert: onDeviceInsert),
-                  ),
-                  );
+                  // Navigator.push(
+                  // context,
+                  // MaterialPageRoute<void>(
+                  //   builder: (BuildContext context) =>
+                  //       Adddevice(onDeviceInsert: onDeviceInsert),
+                  // ),
+                  // );
+                  setState(() {
+                    _listen;
+                    _isListening = !_isListening;
+                    if(_isListening) {
+                      AlertInfo.show(
+                      context: context,
+                      text: 'Tap again to stop recording.',
+                      typeInfo: TypeInfo.info,
+                      backgroundColor: Colors.white,
+                      textColor: Colors.grey.shade800,
+                      iconColor: Colors.blue,
+                    );
+                    }
+                  });
               },
               shape: const CircleBorder(),
               child: Container(
                 width: 60,
                 height: 60,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.rectangle,
                   borderRadius: BorderRadius.circular(20),
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                child: const Icon(
-                  CupertinoIcons.add,
-                ),
+                child: _isListening 
+                ? Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: Lottie.asset('assets/images/mic.json'),
+                )
+                : Icon(Icons.mic, size: 25,),
               ),
             ),
             body: index == 0

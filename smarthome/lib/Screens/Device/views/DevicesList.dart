@@ -1,11 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:smarthome/Screens/Device/views/AddDevice.dart';
 import 'package:smarthome/models/deviceModel.dart';
 
 class Deviceslist extends StatefulWidget {
-  const Deviceslist({super.key, required this.devices, required this.onDeviceDelete});
+  const Deviceslist({super.key, required this.devices, required this.onDeviceDelete, required this.onDeviceInsert});
   final List<DeviceModel> devices;
   final Function(int index) onDeviceDelete;
+  final Function( DeviceModel device) onDeviceInsert;
   @override
   State<Deviceslist> createState() => _DeviceslistState();
 }
@@ -22,8 +24,31 @@ class _DeviceslistState extends State<Deviceslist> {
         child: Column(
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                     Text("Devices", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),),
+                    GestureDetector(
+                              onTap: () {
+                                 Navigator.push(
+                                  context,
+                                  MaterialPageRoute<void>(
+                                    builder: (BuildContext context) =>
+                                        Adddevice(onDeviceInsert: widget.onDeviceInsert),
+                                  ),
+                                  );
+                              },
+                              child: Container(
+                                  alignment: Alignment.center,
+                                  width: 45,
+                                  height: 45,
+                                  decoration: BoxDecoration(
+                                    color:  Theme.of(context).colorScheme.primary,
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  child: Icon(CupertinoIcons.add, color: Colors.white,),
+                                ),
+                            ),
               ],
             ),
              const SizedBox(

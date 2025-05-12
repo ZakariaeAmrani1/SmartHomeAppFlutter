@@ -268,7 +268,7 @@ class _MyWidgetState extends State<HomeScreen> {
             ),
             body: index == 0
                 ? Mainscreen(devices: devices, onDeviceUpdate: onDeviceUpdate,)
-                : Deviceslist(devices: devices, onDeviceDelete: onDeviceDelete,)
+                : Deviceslist(devices: devices, onDeviceDelete: onDeviceDelete, onDeviceInsert: onDeviceInsert,)
     );
   }
 }

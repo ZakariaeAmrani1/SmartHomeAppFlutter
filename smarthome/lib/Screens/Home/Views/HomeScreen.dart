@@ -26,6 +26,7 @@ class _MyWidgetState extends State<HomeScreen> {
   late List<DeviceModel> devices;
   late stt.SpeechToText _speech;
   bool _isListening = false;
+  String _text = "allo";
 
    void onDeviceInsert(DeviceModel device) async {
       final box = Hive.box<DeviceModel>('devicesBox');
@@ -111,6 +112,7 @@ class _MyWidgetState extends State<HomeScreen> {
 
 
   void _listen() async {
+    print("aaa");
     if (!_isListening) {
       bool available = await _speech.initialize(
         onStatus: (status) => print('Status: $status'),
@@ -119,14 +121,16 @@ class _MyWidgetState extends State<HomeScreen> {
       if (available) {
         setState(() => _isListening = true);
         _speech.listen(
+          localeId: 'en_US', 
           onResult: (result) => setState(() {
-            print(result.recognizedWords);
+            _text = result.recognizedWords;
           }),
         );
       }
     } else {
       setState(() => _isListening = false);
       _speech.stop();
+       print(_text);
     }
   }
 
@@ -215,7 +219,7 @@ class _MyWidgetState extends State<HomeScreen> {
                 FloatingActionButtonLocation.centerDocked,
             floatingActionButton: FloatingActionButton(
               heroTag: "fab1",
-              onPressed: () {
+              onPressed: () async {
                   // Navigator.push(
                   // context,
                   // MaterialPageRoute<void>(
@@ -224,9 +228,7 @@ class _MyWidgetState extends State<HomeScreen> {
                   // ),
                   // );
                   setState(() {
-                    _listen;
-                    _isListening = !_isListening;
-                    if(_isListening) {
+                    if(!_isListening) {
                       AlertInfo.show(
                       context: context,
                       text: 'Tap again to stop recording.',
@@ -237,6 +239,7 @@ class _MyWidgetState extends State<HomeScreen> {
                     );
                     }
                   });
+                   _listen();
               },
               shape: const CircleBorder(),
               child: Container(

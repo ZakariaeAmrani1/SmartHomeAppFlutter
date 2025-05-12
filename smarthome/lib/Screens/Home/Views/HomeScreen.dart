@@ -1,9 +1,11 @@
+import 'dart:convert';
+
 import 'package:alert_info/alert_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:http/http.dart' as http;
 import 'package:lottie/lottie.dart';
-import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:smarthome/Screens/Device/views/AddDevice.dart';
 import 'package:smarthome/Screens/Device/views/DevicesList.dart';
 import 'package:smarthome/Screens/Home/Views/MainScreen.dart';
@@ -112,7 +114,6 @@ class _MyWidgetState extends State<HomeScreen> {
 
 
   void _listen() async {
-    print("aaa");
     if (!_isListening) {
       bool available = await _speech.initialize(
         onStatus: (status) => print('Status: $status'),
@@ -124,13 +125,19 @@ class _MyWidgetState extends State<HomeScreen> {
           localeId: 'en_US', 
           onResult: (result) => setState(() {
             _text = result.recognizedWords;
+            print(_text);
           }),
         );
       }
     } else {
       setState(() => _isListening = false);
       _speech.stop();
-       print(_text);
+        final response = await http.post(
+          Uri.parse('http://192.168.11.114:5000/predict_intent'),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({"text": _text}),
+        );
+        print(response.body);
     }
   }
 

@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lottie/lottie.dart';
 import 'package:smarthome/Screens/Device/views/AddDevice.dart';
 import 'package:smarthome/Screens/Device/views/DevicesList.dart';
@@ -27,7 +28,7 @@ class _MyWidgetState extends State<HomeScreen> {
   int index = 0;
   late List<DeviceModel> devices;
   late stt.SpeechToText _speech;
-  bool _isListening = false;
+  int _isListening = 0;
   String _text = "allo";
 
    void onDeviceInsert(DeviceModel device) async {
@@ -112,15 +113,49 @@ class _MyWidgetState extends State<HomeScreen> {
     //  box.deleteAt(0);
   }
 
+ 
+
+  String getDeviceName(int index){
+    final box = Hive.box<DeviceModel>('devicesBox');
+    DeviceModel device = box.getAt(index)!;
+    if(device.name.isNotEmpty){
+      return device.name;
+    }
+    return "not found";
+  }
+
+  int getDeviceIdByName(String deviceName) {
+  Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
+  final device = box.values.firstWhere(
+    (d) => d.name.toLowerCase() == deviceName.toLowerCase(),
+    orElse: () => DeviceModel(id: -1, typeId: -1, name: "", imageUrl: "", imageUrl1: "", color: "", state: false, port: -1),
+  );
+  return device.id;
+  }
+
+  void doAction(String action, String deviceName) {
+    int deviceID = getDeviceIdByName(deviceName) - 1;
+    if(deviceID == -1){
+
+    }
+    else {
+      bool state = action.contains("on");
+      onDeviceUpdate(state, deviceID);
+    }
+    Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
+    setState(() {
+      devices = box.values.toList();
+    });
+  }
 
   void _listen() async {
-    if (!_isListening) {
+    if (_isListening == 0) {
       bool available = await _speech.initialize(
         onStatus: (status) => print('Status: $status'),
         onError: (error) => print('Error: $error'),
       );
       if (available) {
-        setState(() => _isListening = true);
+        setState(() => _isListening = 1);
         _speech.listen(
           localeId: 'en_US', 
           onResult: (result) => setState(() {
@@ -130,14 +165,19 @@ class _MyWidgetState extends State<HomeScreen> {
         );
       }
     } else {
-      setState(() => _isListening = false);
+      setState(() => _isListening = 2);
       _speech.stop();
+        print("sending: $_text ");
         final response = await http.post(
           Uri.parse('http://192.168.11.114:5000/predict_intent'),
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({"text": _text}),
         );
-        print(response.body);
+        _isListening = 0;
+        var data = jsonDecode(response.body);
+        print(data['action']);
+        print(data['device_name']);
+        doAction(data['action'], data['device_name']);
     }
   }
 
@@ -148,6 +188,7 @@ class _MyWidgetState extends State<HomeScreen> {
     Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
     devices = box.values.toList();
     _speech = stt.SpeechToText();
+    
     // box.deleteAt(2);
   }
 
@@ -235,7 +276,7 @@ class _MyWidgetState extends State<HomeScreen> {
                   // ),
                   // );
                   setState(() {
-                    if(!_isListening) {
+                    if(_isListening == 0) {
                       AlertInfo.show(
                       context: context,
                       text: 'Tap again to stop recording.',
@@ -258,12 +299,23 @@ class _MyWidgetState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(20),
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                child: _isListening 
-                ? Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: Lottie.asset('assets/images/mic.json'),
-                )
-                : Icon(Icons.mic, size: 25,),
+                child: _isListening == 0
+                // ? Padding(
+                //   padding: const EdgeInsets.only(left: 6),
+                //   child: Lottie.asset('assets/images/mic.json'),
+                // )
+                ?Icon(Icons.mic, size: 25,)
+                : _isListening == 1 
+                ?LoadingAnimationWidget.staggeredDotsWave(
+                    color: Colors.white,
+                    size: 20,
+                  )
+                :_isListening == 2
+                ? LoadingAnimationWidget.threeRotatingDots(
+                    color: Colors.white,
+                    size: 20,
+                  )
+                : Container()
               ),
             ),
             body: index == 0

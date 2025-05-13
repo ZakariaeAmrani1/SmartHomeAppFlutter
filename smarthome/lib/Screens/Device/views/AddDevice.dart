@@ -45,7 +45,7 @@ class _AdddeviceState extends State<Adddevice> {
         toolbarHeight: 10,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -53,6 +53,26 @@ class _AdddeviceState extends State<Adddevice> {
               children: [
                  Row(
                     children: [
+                       GestureDetector(
+                          onTap: () => {
+                            Navigator.pop(context)
+                          },
+                           child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(15),
+                                  color: Theme.of(context).colorScheme.secondary,
+                                ),
+                                child: Icon(Icons.arrow_back_ios_new, color: Theme.of(context).colorScheme.tertiary, size: 20,),
+                              ),
+                            ],
+                                             ),
+                         ),
+                         SizedBox(width: 10,),
                           Text("Add New Device", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),),
                     ],
                   ),
@@ -110,7 +130,7 @@ class _AdddeviceState extends State<Adddevice> {
                                   value: item['id'].toString(),
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: Color(int.parse(item['color'].replaceFirst('#', '0xFF'))),
+                                      color: Colors.white,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Padding(
@@ -128,7 +148,7 @@ class _AdddeviceState extends State<Adddevice> {
                                                 width: 40,
                                                 height: 40,
                                                 decoration: BoxDecoration(
-                                                  color:  Colors.white,
+                                                  color: Color(int.parse(item['color'].replaceFirst('#', '0xFF'))),
                                                   borderRadius: BorderRadius.circular(10),
                                                 ),
                                                 child: Image(
@@ -144,7 +164,7 @@ class _AdddeviceState extends State<Adddevice> {
                                                 style: TextStyle(
                                                   fontSize: 15,
                                                   color:
-                                                      Colors.white,
+                                                      Theme.of(context).colorScheme.onSurface,
                                                   fontWeight: FontWeight.w600,
                                                 ),
                                               )
@@ -166,8 +186,7 @@ class _AdddeviceState extends State<Adddevice> {
                             );
                           },
                           buttonStyleData: const ButtonStyleData(
-                            padding: EdgeInsets.symmetric(horizontal: 16),
-                            height: 60,
+                            height: 45,
                           ),
                           menuItemStyleData: const MenuItemStyleData(
                             height: 60,
@@ -264,7 +283,7 @@ class _AdddeviceState extends State<Adddevice> {
                           ),
                         ),
                         inputFormatters: [
-                          LengthLimitingTextInputFormatter(16),
+                          LengthLimitingTextInputFormatter(20),
                         ],
                         onChanged: (value) {
                           setState(() {

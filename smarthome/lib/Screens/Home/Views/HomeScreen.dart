@@ -29,7 +29,7 @@ class _MyWidgetState extends State<HomeScreen> {
   late List<DeviceModel> devices;
   late stt.SpeechToText _speech;
   int _isListening = 0;
-  String _text = "allo";
+  String _text = "turn on the living room lights";
 
    void onDeviceInsert(DeviceModel device) async {
       final box = Hive.box<DeviceModel>('devicesBox');
@@ -125,16 +125,17 @@ class _MyWidgetState extends State<HomeScreen> {
   }
 
   int getDeviceIdByName(String deviceName) {
-  Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
-  final device = box.values.firstWhere(
-    (d) => d.name.toLowerCase() == deviceName.toLowerCase(),
-    orElse: () => DeviceModel(id: -1, typeId: -1, name: "", imageUrl: "", imageUrl1: "", color: "", state: false, port: -1),
-  );
-  return device.id;
+    Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
+    final index = box.values.toList().indexWhere(
+      (d) => d.name.toLowerCase() == deviceName.toLowerCase(),
+    );
+    return index;
   }
 
   void doAction(String action, String deviceName) {
-    int deviceID = getDeviceIdByName(deviceName) - 1;
+    
+    print(getDeviceIdByName(deviceName));
+    int deviceID = getDeviceIdByName(deviceName);
     if(deviceID == -1){
 
     }

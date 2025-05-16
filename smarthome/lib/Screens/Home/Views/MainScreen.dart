@@ -19,6 +19,7 @@ class Mainscreen extends StatefulWidget {
 
 class _MainscreenState extends State<Mainscreen> {
   late Usermodel user;
+  late List<DeviceModel>  devices;
   
 
 
@@ -58,6 +59,14 @@ class _MainscreenState extends State<Mainscreen> {
   }
 
   @override
+  void didUpdateWidget(Mainscreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update the internal list if the parent sends a new one
+    if (oldWidget.devices != widget.devices) {
+      devices = List.from(widget.devices);
+    }
+  }
+  @override
   void initState() {
     super.initState();
     saveUserData({
@@ -66,6 +75,7 @@ class _MainscreenState extends State<Mainscreen> {
       'phonenumber': '0677401846',
       'gender': 'male',
     });
+    devices = List.from(widget.devices);
     final userData = getUserData();
     user = Usermodel(username: userData?['username'], email: userData?['email'], phonenumber: userData?['phonenumber'], gender: userData?['gender']);
   }
@@ -142,7 +152,7 @@ class _MainscreenState extends State<Mainscreen> {
                SizedBox(height: 20,),
             Expanded(
               child: ListView.builder(
-                itemCount: (widget.devices.length / 2).ceil(), // Number of rows
+                itemCount: (devices.length / 2).ceil(), // Number of rows
                 itemBuilder: (context, index) {
                   int firstIndex = index * 2;
                   int secondIndex = firstIndex + 1;
@@ -156,32 +166,32 @@ class _MainscreenState extends State<Mainscreen> {
                             child: Device(
                               index: firstIndex,
                               device: DeviceModel(
-                                id: widget.devices[firstIndex].id,
-                                typeId: widget.devices[firstIndex].typeId,
-                                name: widget.devices[firstIndex].name,
-                                imageUrl: widget.devices[firstIndex].imageUrl,
-                                imageUrl1: widget.devices[firstIndex].imageUrl1,
-                                color: widget.devices[firstIndex].color,
-                                state: widget.devices[firstIndex].state,
-                                port:  widget.devices[firstIndex].port,
+                                id: devices[firstIndex].id,
+                                typeId: devices[firstIndex].typeId,
+                                name: devices[firstIndex].name,
+                                imageUrl: devices[firstIndex].imageUrl,
+                                imageUrl1: devices[firstIndex].imageUrl1,
+                                color: devices[firstIndex].color,
+                                state: devices[firstIndex].state,
+                                port:  devices[firstIndex].port,
                               ),
                               onDeviceUpdate: widget.onDeviceUpdate,
                             ),
                           ),
                           const SizedBox(width: 10),
-                          if (secondIndex < widget.devices.length)
+                          if (secondIndex < devices.length)
                             Expanded(
                               child: Device(
                                 index: secondIndex,
                                 device: DeviceModel(
-                                  id: widget.devices[secondIndex].id,
-                                  typeId: widget.devices[secondIndex].typeId,
-                                  name: widget.devices[secondIndex].name,
-                                  imageUrl: widget.devices[secondIndex].imageUrl,
-                                  imageUrl1: widget.devices[secondIndex].imageUrl1,
-                                  color: widget.devices[secondIndex].color,
-                                  state: widget.devices[secondIndex].state,
-                                  port:  widget.devices[secondIndex].port,
+                                  id: devices[secondIndex].id,
+                                  typeId: devices[secondIndex].typeId,
+                                  name: devices[secondIndex].name,
+                                  imageUrl: devices[secondIndex].imageUrl,
+                                  imageUrl1: devices[secondIndex].imageUrl1,
+                                  color: devices[secondIndex].color,
+                                  state: devices[secondIndex].state,
+                                  port:  devices[secondIndex].port,
                                 ),
                                 onDeviceUpdate: widget.onDeviceUpdate,
                               ),

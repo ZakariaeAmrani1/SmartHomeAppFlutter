@@ -17,6 +17,7 @@ class DeviceScreen extends StatefulWidget {
 
 class _DeviceScreenState extends State<DeviceScreen> {
   late bool positive;
+  late DeviceModel device;
   bool loading = false;
    final List<String> items = [
     'Air Fan',
@@ -24,6 +25,18 @@ class _DeviceScreenState extends State<DeviceScreen> {
     'Air Heating',
   ];
   String selectedMode = "Air Cooler";
+
+  @override
+  void didUpdateWidget(DeviceScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    print("helllloooooooooooo");
+    // Update the internal list if the parent sends a new one
+    if (oldWidget.device != widget.device) {
+      setState(() {
+        device = widget.device;
+      });
+    }
+  }
   @override
   void initState() {
     super.initState();

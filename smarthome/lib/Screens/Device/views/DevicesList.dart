@@ -28,14 +28,27 @@ class _DeviceslistState extends State<Deviceslist> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                     Text("Devices", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),),
-                    Text(
-                    "View all",
-                    style: TextStyle(
-                      color: Colors.grey.shade700,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 14,
-                    ),
-                  ),
+                    GestureDetector(
+                              onTap: () {
+                                 Navigator.push(
+                                  context,
+                                  MaterialPageRoute<void>(
+                                    builder: (BuildContext context) =>
+                                        Adddevice(onDeviceInsert: widget.onDeviceInsert),
+                                  ),
+                                  );
+                              },
+                              child: Container(
+                                  alignment: Alignment.center,
+                                  width: 45,
+                                  height: 45,
+                                  decoration: BoxDecoration(
+                                    color:  Theme.of(context).colorScheme.primary,
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  child: Icon(CupertinoIcons.add, color: Colors.white,),
+                                ),
+                            ),
               ],
             ),
              const SizedBox(

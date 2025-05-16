@@ -29,6 +29,7 @@ class _MyWidgetState extends State<HomeScreen> {
   late List<DeviceModel> devices;
   late stt.SpeechToText _speech;
   int _isListening = 0;
+  bool isloading = false;
   String _text = "turn on the living room lights";
 
    void onDeviceInsert(DeviceModel device) async {
@@ -133,12 +134,20 @@ class _MyWidgetState extends State<HomeScreen> {
   }
 
   void doAction(String action, String deviceName) {
-    
+    setState(() {
+      isloading = true;
+    });
     print(getDeviceIdByName(deviceName));
     int deviceID = getDeviceIdByName(deviceName);
     if(deviceID == -1){
-
-    }
+       AlertInfo.show(
+                        context: context,
+                        text: 'Device not found, Please specify more !',
+                        typeInfo: TypeInfo.error,
+                        backgroundColor: Colors.white,
+                        textColor: Colors.grey.shade800,
+                      );
+        }
     else {
       bool state = action.contains("on");
       onDeviceUpdate(state, deviceID);
@@ -146,6 +155,7 @@ class _MyWidgetState extends State<HomeScreen> {
     Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
     setState(() {
       devices = box.values.toList();
+       isloading = false;
     });
   }
 
@@ -319,7 +329,14 @@ class _MyWidgetState extends State<HomeScreen> {
                 : Container()
               ),
             ),
-            body: index == 0
+            body: isloading 
+                ?  Center(
+                  child: LoadingAnimationWidget.threeRotatingDots(
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 32,
+                    ),
+                )
+                : index == 0
                 ? Mainscreen(devices: devices, onDeviceUpdate: onDeviceUpdate,)
                 : Deviceslist(devices: devices, onDeviceDelete: onDeviceDelete, onDeviceInsert: onDeviceInsert,)
     );

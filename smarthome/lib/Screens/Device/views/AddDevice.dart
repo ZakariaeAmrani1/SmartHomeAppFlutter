@@ -43,6 +43,7 @@ class _AdddeviceState extends State<Adddevice> {
 
    @override
   void initState() {
+    super.initState();
     setState(() {
       device = DeviceModel(
       id: 0,

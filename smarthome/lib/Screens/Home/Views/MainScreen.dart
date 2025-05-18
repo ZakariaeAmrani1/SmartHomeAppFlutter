@@ -6,7 +6,6 @@ import 'package:hive/hive.dart';
 import 'package:smarthome/Components/Device.dart';
 import 'package:smarthome/Screens/Settings/Views/SettingScreen.dart';
 import 'package:smarthome/models/userModel.dart';
-import 'package:smarthome/data/devices.dart';
 import 'package:smarthome/models/deviceModel.dart';
 
 class Mainscreen extends StatefulWidget {

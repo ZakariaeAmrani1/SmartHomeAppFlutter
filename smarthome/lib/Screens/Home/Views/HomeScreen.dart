@@ -1,18 +1,17 @@
-import 'dart:convert';
+
+import 'dart:io';
 
 import 'package:alert_info/alert_info.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:http/http.dart' as http;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:lottie/lottie.dart';
-import 'package:smarthome/Screens/Device/views/AddDevice.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
 import 'package:smarthome/Screens/Device/views/DevicesList.dart';
 import 'package:smarthome/Screens/Home/Views/MainScreen.dart';
-import 'package:smarthome/data/devices.dart';
 import 'package:smarthome/models/deviceModel.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 
 
@@ -24,13 +23,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _MyWidgetState extends State<HomeScreen> {
-
+  
+  final record = AudioRecorder();
   int index = 0;
   late List<DeviceModel> devices;
-  late stt.SpeechToText _speech;
   int _isListening = 0;
   bool isloading = false;
-  String _text = "turn on the living room lights";
+  // String _text = "turn on the living room lights";
 
    void onDeviceInsert(DeviceModel device) async {
       final box = Hive.box<DeviceModel>('devicesBox');
@@ -85,7 +84,9 @@ class _MyWidgetState extends State<HomeScreen> {
     void onDeviceUpdate(bool state, int index) async {
       final box = Hive.box<DeviceModel>('devicesBox');
       DeviceModel device = box.getAt(index)!;
-      device.state = state;
+      setState(() {
+        device.state = state;
+      });
       await device.save();
       Future<dynamic>.delayed(const Duration(seconds: 1));
       state ? AlertInfo.show(
@@ -134,61 +135,125 @@ class _MyWidgetState extends State<HomeScreen> {
   }
 
   void doAction(String action, String deviceName) {
-    setState(() {
-      isloading = true;
-    });
     print(getDeviceIdByName(deviceName));
     int deviceID = getDeviceIdByName(deviceName);
     if(deviceID == -1){
        AlertInfo.show(
-                        context: context,
-                        text: 'Device not found, Please specify more !',
-                        typeInfo: TypeInfo.error,
-                        backgroundColor: Colors.white,
-                        textColor: Colors.grey.shade800,
-                      );
-        }
+        context: context,
+        text: 'Device not found. Please provide more details!',
+        typeInfo: TypeInfo.error,
+        backgroundColor: Colors.white,
+        textColor: Colors.grey.shade800,
+      );
+    }
     else {
       bool state = action.contains("on");
       onDeviceUpdate(state, deviceID);
+      Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
+      setState(() {
+        devices = List.from(box.values);
+      });
     }
-    Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
     setState(() {
-      devices = box.values.toList();
-       isloading = false;
+      _isListening = 0;
     });
+    
   }
+
+  Future<void> startRecording() async {
+    if (await record.hasPermission()) {
+      final tempDir = await getTemporaryDirectory();
+      final path = '${tempDir.path}/audio.wav';
+      await record.start(const RecordConfig(encoder: AudioEncoder.wav), path: path);
+    }
+  }
+  Future<String?> stopRecording() async {
+    final path = await record.stop();
+    return path;
+  }
+  Future<void> transcribeAudio(File audioFile) async {
+      final dio = Dio();
+      final formData = FormData.fromMap({
+        'audio': await MultipartFile.fromFile(audioFile.path, filename: 'audio.wav'),
+      });
+
+      final response = await dio.post('http://192.168.11.114:5000/predict_intent', data: formData);
+      final data = response.data;
+        print(data['action']);
+        print(data['device_name']);
+        if(data['action'].contains('on') || data['action'].contains('off')){
+          if(data['device_name'] != null){
+            doAction(data['action'], data['device_name']);
+          }
+        }
+        else{
+           AlertInfo.show(
+            context: context,
+            text: 'Device not found. Please provide more details!',
+            typeInfo: TypeInfo.error,
+            backgroundColor: Colors.white,
+            textColor: Colors.grey.shade800,
+          );
+          setState(() {
+             _isListening = 0;
+          });
+        }
+}
 
   void _listen() async {
     if (_isListening == 0) {
-      bool available = await _speech.initialize(
-        onStatus: (status) => print('Status: $status'),
-        onError: (error) => print('Error: $error'),
-      );
-      if (available) {
-        setState(() => _isListening = 1);
-        _speech.listen(
-          localeId: 'en_US', 
-          onResult: (result) => setState(() {
-            _text = result.recognizedWords;
-            print(_text);
-          }),
-        );
-      }
+      // bool available = await _speech.initialize(
+      //   onStatus: (status) => print('Status: $status'),
+      //   onError: (error) => print('Error: $error'),
+      // );
+      // if (available) {
+      //   setState(() => _isListening = 1);
+      //   _speech.listen(
+      //     localeId: 'en_US', 
+      //     onResult: (result) => setState(() {
+      //       _text = result.recognizedWords;
+      //       print(_text);
+      //     }),
+      //   );
+      // }
+      await startRecording();
+      setState(() {
+        _isListening = 1;
+      });
     } else {
       setState(() => _isListening = 2);
-      _speech.stop();
-        print("sending: $_text ");
-        final response = await http.post(
-          Uri.parse('http://192.168.11.114:5000/predict_intent'),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode({"text": _text}),
-        );
-        _isListening = 0;
-        var data = jsonDecode(response.body);
-        print(data['action']);
-        print(data['device_name']);
-        doAction(data['action'], data['device_name']);
+      String? path = await stopRecording();
+      if(path != null){
+        final audioFile = File('/data/user/0/com.example.smarthome/cache/audio.wav');
+        await transcribeAudio(audioFile);
+      }
+      // _speech.stop();
+      //   print("sending: $_text ");
+      //   final response = await http.post(
+      //     Uri.parse('http://192.168.11.114:5000/predict_intent'),
+      //     headers: {"Content-Type": "application/json"},
+      //     body: jsonEncode({"text": _text}),
+      //   );
+      //   var data = jsonDecode(response.body);
+      //   print(data['action']);
+      //   print(data['device_name']);
+      //   if(data['action'].contains('on') || data['action'].contains('off')){
+      //     if(data['device_name'] != null){
+      //       doAction(data['action'], data['device_name']);
+      //     }
+      //   }
+      //   else{
+      //      AlertInfo.show(
+      //       context: context,
+      //       text: 'Device not found. Please provide more details!',
+      //       typeInfo: TypeInfo.error,
+      //       backgroundColor: Colors.white,
+      //       textColor: Colors.grey.shade800,
+      //     );
+      //     setState(() {
+      //        _isListening = 0;
+      //     });
+      //   }
     }
   }
 
@@ -198,11 +263,14 @@ class _MyWidgetState extends State<HomeScreen> {
     super.initState();
     Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
     devices = box.values.toList();
-    _speech = stt.SpeechToText();
     
     // box.deleteAt(2);
   }
-
+  @override
+  void dispose(){
+    record.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
@@ -329,14 +397,7 @@ class _MyWidgetState extends State<HomeScreen> {
                 : Container()
               ),
             ),
-            body: isloading 
-                ?  Center(
-                  child: LoadingAnimationWidget.threeRotatingDots(
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 32,
-                    ),
-                )
-                : index == 0
+            body: index == 0
                 ? Mainscreen(devices: devices, onDeviceUpdate: onDeviceUpdate,)
                 : Deviceslist(devices: devices, onDeviceDelete: onDeviceDelete, onDeviceInsert: onDeviceInsert,)
     );

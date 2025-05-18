@@ -3,6 +3,8 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive/hive.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:smarthome/data/deviceTypes.dart';
 import 'package:smarthome/models/deviceModel.dart';
 
@@ -21,6 +23,24 @@ class _AdddeviceState extends State<Adddevice> {
   String? selectedvalue;
   late DeviceModel device;
   bool readOnly = true;
+  bool isloading = false;
+
+
+  int getDeviceIdByName(String deviceName) {
+    Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
+    final index = box.values.toList().indexWhere(
+      (d) => d.name.toLowerCase() == deviceName.toLowerCase(),
+    );
+    return index;
+  }
+  int getDeviceIdByPort(int? port) {
+    Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
+    final index = box.values.toList().indexWhere(
+      (d) => d.port == port,
+    );
+    return index;
+  }
+
    @override
   void initState() {
     setState(() {
@@ -360,15 +380,44 @@ class _AdddeviceState extends State<Adddevice> {
                   {
                       AlertInfo.show(
                         context: context,
-                        text: 'Fill up all the fields first !',
+                        text: 'Please fill in all the fields first!',
                         typeInfo: TypeInfo.error,
                         backgroundColor: Colors.white,
                         textColor: Colors.grey.shade800,
                       );
                   } 
                   else {
-                    widget.onDeviceInsert(device);
-                    Navigator.pop(context);
+                    setState(() {
+                      isloading = true;
+                    });
+                    int index = getDeviceIdByName(device.name);
+                    int index1 = getDeviceIdByPort(device.port);
+                    if(index != -1){
+                      AlertInfo.show(
+                        context: context,
+                        text: 'Device name already in use. Please try another one!',
+                        typeInfo: TypeInfo.error,
+                        backgroundColor: Colors.white,
+                        textColor: Colors.grey.shade800,
+                      );
+                    }
+                    if(index1 != -1){
+                       AlertInfo.show(
+                        context: context,
+                        text: 'Device port already in use. Please try another one!',
+                        typeInfo: TypeInfo.error,
+                        backgroundColor: Colors.white,
+                        textColor: Colors.grey.shade800,
+                      );
+                    }
+                    if(index == -1 && index1 == -1){
+                        widget.onDeviceInsert(device);
+                        Navigator.pop(context);
+                    }
+                    setState(() {
+                      isloading = false;
+                    });
+                    
                   }
                     
                 },
@@ -379,7 +428,12 @@ class _AdddeviceState extends State<Adddevice> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Add Device", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),)
+                    isloading 
+                    ? LoadingAnimationWidget.threeArchedCircle(
+                        color: Colors.white,
+                        size: 20,
+                     )
+                    : Text("Add Device", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),)
                   ],
                 ),
               ),

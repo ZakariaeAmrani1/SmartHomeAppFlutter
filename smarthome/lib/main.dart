@@ -16,7 +16,6 @@ Future<void> main() async {
 
   // Open boxes
   await Hive.openBox('userBox');
-  await Hive.openBox<DeviceModel>('devicesBox');
   runApp(const MyApp());
 }
 

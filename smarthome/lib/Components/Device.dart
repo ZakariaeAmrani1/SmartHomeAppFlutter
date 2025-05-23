@@ -1,17 +1,19 @@
+import 'dart:convert';
 import 'dart:math';
 
+import 'package:alert_info/alert_info.dart';
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:popup_card/popup_card.dart';
 import 'package:smarthome/Screens/Device/views/Device.dart';
 import 'package:smarthome/models/deviceModel.dart';
 
 class Device extends StatefulWidget {
-  const Device({super.key,  required this.index, required this.device, required this.onDeviceUpdate});
+  const Device({super.key, required this.device, required this.onDeviceUpdate});
   final DeviceModel device;
-  final Function( bool state, int index) onDeviceUpdate;
-  final int index;
+  final Function( bool state, String index) onDeviceUpdate;
   @override
   State<Device> createState() => _DeviceState();
 }
@@ -22,6 +24,8 @@ class _DeviceState extends State<Device> {
   int? nullableValue;
   late bool positive;
   bool loading = false;
+
+
   @override
   void initState() {
     super.initState();
@@ -98,8 +102,9 @@ class _DeviceState extends State<Device> {
                           Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.surface, global.position)),
               onChanged: (b) {
                 setState(() => widget.device.state = b);
-                widget.onDeviceUpdate(b, widget.index);
-                return Future<dynamic>.delayed(const Duration(milliseconds: 80));
+                widget.onDeviceUpdate(b, widget.device.id);
+                return Future<dynamic>.delayed(const Duration(milliseconds: 100));
+                
               },
               iconBuilder: (value) => value
                   ?  Icon(Icons.power_outlined,

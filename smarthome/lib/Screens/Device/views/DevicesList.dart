@@ -6,7 +6,7 @@ import 'package:smarthome/models/deviceModel.dart';
 class Deviceslist extends StatefulWidget {
   const Deviceslist({super.key, required this.devices, required this.onDeviceDelete, required this.onDeviceInsert});
   final List<DeviceModel> devices;
-  final Function(int index) onDeviceDelete;
+  final Function(String index) onDeviceDelete;
   final Function( DeviceModel device) onDeviceInsert;
   @override
   State<Deviceslist> createState() => _DeviceslistState();
@@ -123,7 +123,7 @@ class _DeviceslistState extends State<Deviceslist> {
                             ),
                             GestureDetector(
                               onTap: () async {
-                                widget.onDeviceDelete(i);
+                                widget.onDeviceDelete(widget.devices[i].id);
                               },
                               child: Container(
                                   alignment: Alignment.center,

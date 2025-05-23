@@ -7,7 +7,7 @@ part 'deviceModel.g.dart';// Required for the generated adapter
 @HiveType(typeId: 0)
 class DeviceModel extends HiveObject {
   @HiveField(0)
-   int id;
+   String id;
 
   @HiveField(1)
    int typeId;
@@ -28,7 +28,7 @@ class DeviceModel extends HiveObject {
    bool state;
 
   @HiveField(7)
-   int? port;
+   int port;
 
   DeviceModel({
     required this.id,
@@ -40,4 +40,16 @@ class DeviceModel extends HiveObject {
     required this.state,
     required this.port,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'typeId': typeId,
+      'name': name,
+      'imageUrl': imageUrl,
+      'imageUrl1': imageUrl1,
+      'color': color,
+      'state': state,
+      'port': port,
+    };
+  }
 }

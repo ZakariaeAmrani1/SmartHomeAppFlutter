@@ -1,4 +1,5 @@
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:alert_info/alert_info.dart';
@@ -6,6 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:http/http.dart' as http;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
@@ -29,8 +31,9 @@ class _MyWidgetState extends State<HomeScreen> {
   late Usermodel user;
   final record = AudioRecorder();
   int index = 0;
-  late List<DeviceModel> devices;
+  late List<DeviceModel> devices = [];
   int _isListening = 0;
+  bool isreloading = true;
   bool isloading = false;
   bool isFound = false;
   // String _text = "turn on the living room lights";
@@ -71,88 +74,103 @@ class _MyWidgetState extends State<HomeScreen> {
   }
 
    void onDeviceInsert(DeviceModel device) async {
-      final box = Hive.box<DeviceModel>('devicesBox');
-
-      // Auto-increment ID logic
-      final newId = box.isEmpty
-          ? 1
-          : box.values.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1;
-
-      // Create a NEW instance with copied values and new ID
-      final newDevice = DeviceModel(
-        id: newId,
-        typeId: device.typeId,
-        name: device.name,
-        imageUrl: device.imageUrl,
-        imageUrl1: device.imageUrl1,
-        color: device.color,
-        state: device.state,
-        port: device.port,
-      );
-
-      await box.add(newDevice);
-
       setState(() {
-        devices = box.values.toList();
+        isreloading = true;
       });
+      final url = Uri.parse("http://192.168.11.137:8000/devices/");
 
-      AlertInfo.show(
-        context: context,
-        text: 'Device Added.',
-        typeInfo: TypeInfo.success,
-        backgroundColor: Colors.white,
-        textColor: Colors.grey.shade800,
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(device.toJson()),
       );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        devices = await fetchDevices();
+        AlertInfo.show(
+          context: context,
+          text: 'Device Added.',
+          typeInfo: TypeInfo.success,
+          backgroundColor: Colors.white,
+          textColor: Colors.grey.shade800,
+      );
+      } else {
+        AlertInfo.show(
+          context: context,
+          text: 'Error.',
+          typeInfo: TypeInfo.error,
+          backgroundColor: Colors.white,
+          textColor: Colors.grey.shade800,
+      );
+      }
+       setState(() {
+        isreloading = false;
+      });
     }
-    void onDeviceDelete(int index) async {
-      final box = Hive.box<DeviceModel>('devicesBox');
-       box.deleteAt(index);
+    void onDeviceDelete(String index) async {
       setState(() {
-        devices = box.values.toList();
+        isreloading = true;
       });
-
-      AlertInfo.show(
-        context: context,
-        text: 'Device Deleted.',
-        typeInfo: TypeInfo.success,
-        backgroundColor: Colors.white,
-        textColor: Colors.grey.shade800,
-      );
-    }
-
-    void onDeviceUpdate(bool state, int index) async {
-      final box = Hive.box<DeviceModel>('devicesBox');
-      DeviceModel device = box.getAt(index)!;
+      final response = await http.delete(Uri.parse("http://192.168.11.137:8000/devices/$index"));
+      if (response.statusCode == 200) {
+            devices = await fetchDevices();
+             AlertInfo.show(
+              context: context,
+              text: 'Device Deleted.',
+              typeInfo: TypeInfo.success,
+              backgroundColor: Colors.white,
+              textColor: Colors.grey.shade800,
+            );                                                   
+      }
+      else{
+            AlertInfo.show(
+            context: context,
+            text: 'Error',
+            typeInfo: TypeInfo.error,
+            backgroundColor: Colors.white,
+            textColor: Colors.grey.shade800,
+          );
+      }
       setState(() {
-        device.state = state;
+        isreloading = false;
       });
-      await device.save();
-      Future<dynamic>.delayed(const Duration(seconds: 1));
-      state ? AlertInfo.show(
-        context: context,
-        text: 'Device Turned On.',
-        typeInfo: TypeInfo.success,
-        backgroundColor: Colors.white,
-        textColor: Colors.grey.shade800,
-      )
-      : AlertInfo.show(
-        context: context,
-        text: 'Device Turned Off.',
-        typeInfo: TypeInfo.success,
-        backgroundColor: Colors.white,
-        textColor: Colors.grey.shade800,
-      );
+    
     }
 
-  void saveDevice(DeviceModel newDevice) {
-    Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
-    final int newId = box.isEmpty
-      ? 1
-      : box.values.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1;
-    newDevice.id = newId;
-    box.add(newDevice);
-    //  box.deleteAt(0);
-  }
+    void onDeviceUpdate(bool state, String index) async {
+      final response = await http.put(Uri.parse("http://192.168.11.137:8000/devices/$index"),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({
+              'state': state
+            }),
+          );
+       if (response.statusCode == 200) {
+              state ? AlertInfo.show(
+                context: context,
+                text: 'Device Turned On.',
+                typeInfo: TypeInfo.success,
+                backgroundColor: Colors.white,
+                textColor: Colors.grey.shade800,
+              )
+              : AlertInfo.show(
+                context: context,
+                text: 'Device Turned Off.',
+                typeInfo: TypeInfo.success,
+                backgroundColor: Colors.white,
+                textColor: Colors.grey.shade800,
+              );                                                  
+              }
+      else{
+            AlertInfo.show(
+            context: context,
+            text: 'Error',
+            typeInfo: TypeInfo.error,
+            backgroundColor: Colors.white,
+            textColor: Colors.grey.shade800,
+          );
+      }
+    }
+
 
  
 
@@ -165,17 +183,20 @@ class _MyWidgetState extends State<HomeScreen> {
     return "not found";
   }
 
-  int getDeviceIdByName(String deviceName) {
-    Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
-    final index = box.values.toList().indexWhere(
-      (d) => d.name.toLowerCase() == deviceName.toLowerCase(),
-    );
-    return index;
+  Future<String> getDeviceIdByName(String deviceName) async {
+   final response = await http.get(
+      Uri.parse("http://192.168.11.137:8000/devices/name?name=$deviceName"),
+   );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+       return data['_id'];                                             
+      }
+    return '';
   }
 
-  void doAction(String action, String deviceName) {
-    int deviceID = getDeviceIdByName(deviceName);
-    if(deviceID == -1){
+  Future<void> doAction(String action, String deviceName) async {
+    String deviceID = await getDeviceIdByName(deviceName);
+    if(deviceID == ''){
        AlertInfo.show(
         context: context,
         text: 'Device not found. Please provide more details!',
@@ -188,8 +209,8 @@ class _MyWidgetState extends State<HomeScreen> {
       bool state = action.contains("on");
       onDeviceUpdate(state, deviceID);
       Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
-      setState(() {
-        devices = List.from(box.values);
+      setState(() async {
+        devices = await fetchDevices();
       });
     }
     setState(() {
@@ -315,17 +336,33 @@ class _MyWidgetState extends State<HomeScreen> {
         isFound = true;
       });
   }
+
+  Future<List<DeviceModel>> fetchDevices() async {
+  final response = await http.get(Uri.parse("http://192.168.11.137:8000/devices"));
+  late List<DeviceModel> newdevices = [];
+  if (response.statusCode == 200) {
+    List<dynamic> jsonList = json.decode(response.body);
+    // Store new data
+    for (var json in jsonList) {
+      setState(() {
+        newdevices.add(DeviceModel(id:json['_id'], typeId:json['typeId'], name: json['name'], imageUrl: json['imageUrl'], imageUrl1: json['imageUrl1'], color: json['color'], state: json['state'], port: json['port']));
+      });
+    }                                                         
+  }
+  return newdevices;
+}
+
+
   @override
   void initState(){
     super.initState();
-    Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
-    devices = box.values.toList();
-    // saveUserData({
-    //   'username': 'Alexo',
-    //   'email': 'alexo@gmail.com',
-    //   'phonenumber': '0677401846',
-    //   'gender': 'male',
-    // });
+    getDeviceIdByName("allo");
+    fetchDevices().then((fetchedDevices) {
+      setState(() {
+        devices = fetchedDevices;
+        isreloading = false;
+      });
+    });
     final userData = getUserData();
     if(userData != null && userData.isNotEmpty) {
       user = Usermodel(username: userData['username'], email: userData['email'], phonenumber: userData['phonenumber'], gender: userData['gender']);
@@ -476,7 +513,14 @@ class _MyWidgetState extends State<HomeScreen> {
                 : Container()
               ),
             ),
-            body: index == 0
+            body: isreloading 
+              ? Center(
+                child: LoadingAnimationWidget.threeRotatingDots(
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 40,
+                    ),
+              ):
+              index == 0
                 ? Mainscreen(devices: devices, onDeviceUpdate: onDeviceUpdate)
                 : Deviceslist(devices: devices, onDeviceDelete: onDeviceDelete, onDeviceInsert: onDeviceInsert,)
     );

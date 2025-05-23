@@ -17,14 +17,14 @@ class DeviceModelAdapter extends TypeAdapter<DeviceModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return DeviceModel(
-      id: fields[0] as int,
+      id: fields[0] as String,
       typeId: fields[1] as int,
       name: fields[2] as String,
       imageUrl: fields[3] as String,
       imageUrl1: fields[4] as String,
       color: fields[5] as String,
       state: fields[6] as bool,
-      port: fields[7] as int?,
+      port: fields[7] as int,
     );
   }
 

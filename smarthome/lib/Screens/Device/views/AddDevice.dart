@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:alert_info/alert_info.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
+import 'package:http/http.dart' as http;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:smarthome/data/deviceTypes.dart';
 import 'package:smarthome/models/deviceModel.dart';
@@ -26,27 +29,32 @@ class _AdddeviceState extends State<Adddevice> {
   bool isloading = false;
 
 
-  int getDeviceIdByName(String deviceName) {
-    Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
-    final index = box.values.toList().indexWhere(
-      (d) => d.name.toLowerCase() == deviceName.toLowerCase(),
-    );
-    return index;
-  }
-  int getDeviceIdByPort(int? port) {
-    Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
-    final index = box.values.toList().indexWhere(
-      (d) => d.port == port,
-    );
-    return index;
+   Future<bool> getDeviceIdByName(String deviceName) async {
+   final response = await http.get(
+      Uri.parse("http://192.168.11.137:8000/devices/name?name=$deviceName"),
+   );
+    if (response.statusCode == 200) {
+       return true;                                           
+      }
+    return false;
   }
 
+     Future<bool> getDeviceIdByPort(int port) async {
+   final response = await http.get(
+      Uri.parse("http://192.168.11.137:8000/devices/port?port=$port"),
+   );
+    if (response.statusCode == 200) {
+       return true;                                           
+      }
+    return false;
+  }
+  
    @override
   void initState() {
     super.initState();
     setState(() {
       device = DeviceModel(
-      id: 0,
+      id: '',
       typeId: 0,
       name: '',
       imageUrl: '',
@@ -376,7 +384,7 @@ class _AdddeviceState extends State<Adddevice> {
                 borderRadius: BorderRadius.circular(15),
               ),
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if(device.name == '' || device.port == 0)
                   {
                       AlertInfo.show(
@@ -391,9 +399,9 @@ class _AdddeviceState extends State<Adddevice> {
                     setState(() {
                       isloading = true;
                     });
-                    int index = getDeviceIdByName(device.name);
-                    int index1 = getDeviceIdByPort(device.port);
-                    if(index != -1){
+                  bool index = await getDeviceIdByName(device.name);
+                    bool index1 = await getDeviceIdByPort(device.port);
+                    if(index){
                       AlertInfo.show(
                         context: context,
                         text: 'Device name already in use. Please try another one!',
@@ -402,7 +410,7 @@ class _AdddeviceState extends State<Adddevice> {
                         textColor: Colors.grey.shade800,
                       );
                     }
-                    if(index1 != -1){
+                    if(index1){
                        AlertInfo.show(
                         context: context,
                         text: 'Device port already in use. Please try another one!',
@@ -411,7 +419,7 @@ class _AdddeviceState extends State<Adddevice> {
                         textColor: Colors.grey.shade800,
                       );
                     }
-                    if(index == -1 && index1 == -1){
+                    if(!index && !index1){
                         widget.onDeviceInsert(device);
                         Navigator.pop(context);
                     }

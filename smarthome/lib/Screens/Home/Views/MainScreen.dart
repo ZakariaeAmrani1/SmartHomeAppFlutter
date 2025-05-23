@@ -11,7 +11,7 @@ import 'package:smarthome/models/deviceModel.dart';
 class Mainscreen extends StatefulWidget {
   const Mainscreen({super.key, required this.devices, required this.onDeviceUpdate});
   final List<DeviceModel> devices;
-  final Function(bool state, int index) onDeviceUpdate;
+  final Function(bool state, String index) onDeviceUpdate;
   @override
   State<Mainscreen> createState() => _MainscreenState();
 }
@@ -157,7 +157,6 @@ class _MainscreenState extends State<Mainscreen> {
                         children: [
                           Expanded(
                             child: Device(
-                              index: firstIndex,
                               device: DeviceModel(
                                 id: devices[firstIndex].id,
                                 typeId: devices[firstIndex].typeId,
@@ -175,7 +174,6 @@ class _MainscreenState extends State<Mainscreen> {
                           if (secondIndex < devices.length)
                             Expanded(
                               child: Device(
-                                index: secondIndex,
                                 device: DeviceModel(
                                   id: devices[secondIndex].id,
                                   typeId: devices[secondIndex].typeId,

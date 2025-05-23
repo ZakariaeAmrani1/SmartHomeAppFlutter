@@ -58,7 +58,7 @@ class _DeviceState extends State<Device> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Image(
-                    image: positive ? AssetImage(widget.device.imageUrl1) : AssetImage(widget.device.imageUrl),
+                    image: widget.device.state ? AssetImage(widget.device.imageUrl1) : AssetImage(widget.device.imageUrl),
                     width: 30,
                     ),
                 ),
@@ -70,7 +70,7 @@ class _DeviceState extends State<Device> {
         Text("40% Luminosity", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: Theme.of(context).colorScheme.surface),),
         SizedBox(height: 30,),
         AnimatedToggleSwitch<bool>.dual(
-              current: positive,
+              current: widget.device.state,
               first: false,
               second: true,
               spacing: 10.0,
@@ -97,7 +97,7 @@ class _DeviceState extends State<Device> {
                       color: Color.lerp(
                           Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.surface, global.position)),
               onChanged: (b) {
-                setState(() => positive = b);
+                setState(() => widget.device.state = b);
                 widget.onDeviceUpdate(b, widget.index);
                 return Future<dynamic>.delayed(const Duration(milliseconds: 80));
               },

@@ -11,7 +11,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:smarthome/Screens/Device/views/DevicesList.dart';
 import 'package:smarthome/Screens/Home/Views/MainScreen.dart';
+import 'package:smarthome/Screens/Home/Views/Register.dart';
 import 'package:smarthome/models/deviceModel.dart';
+import 'package:smarthome/models/userModel.dart';
 
 
 
@@ -23,13 +25,50 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _MyWidgetState extends State<HomeScreen> {
-  
+
+  late Usermodel user;
   final record = AudioRecorder();
   int index = 0;
   late List<DeviceModel> devices;
   int _isListening = 0;
   bool isloading = false;
+  bool isFound = false;
   // String _text = "turn on the living room lights";
+  
+  void saveUserData(Map<String, dynamic> userData) {
+    final box = Hive.box('userBox');
+    box.put('user', userData);
+  }
+  
+  Map<String, dynamic>? getUserData() {
+      final box = Hive.box('userBox');
+      return Map<String, dynamic>.from(box.get('user') ?? {});
+  }
+
+  void updateUserData(Map<String, dynamic> updates) {
+    final box = Hive.box('userBox');
+    final currentData = Map<String, dynamic>.from(box.get('user') ?? {});
+    currentData.addAll(updates);
+    box.put('user', currentData);
+  }
+
+  
+  void onUserUpdate(newuser) {
+    setState(() {
+      updateUserData({'username': newuser.username});
+      updateUserData({'email': newuser.email});
+      updateUserData({'phonenumber': newuser.phonenumber});
+      updateUserData({'gender': newuser.gender});
+      user = newuser;
+    });
+    AlertInfo.show(
+        context: context,
+        text: 'Profile Updated.',
+        typeInfo: TypeInfo.success,
+        backgroundColor: Colors.white,
+        textColor: Colors.grey.shade800,
+    );
+  }
 
    void onDeviceInsert(DeviceModel device) async {
       final box = Hive.box<DeviceModel>('devicesBox');
@@ -135,7 +174,6 @@ class _MyWidgetState extends State<HomeScreen> {
   }
 
   void doAction(String action, String deviceName) {
-    print(getDeviceIdByName(deviceName));
     int deviceID = getDeviceIdByName(deviceName);
     if(deviceID == -1){
        AlertInfo.show(
@@ -177,7 +215,7 @@ class _MyWidgetState extends State<HomeScreen> {
         'audio': await MultipartFile.fromFile(audioFile.path, filename: 'audio.wav'),
       });
 
-      final response = await dio.post('http://192.168.11.114:5000/predict_intent', data: formData);
+      final response = await dio.post('http://192.168.11.137:5000/predict_intent', data: formData);
       final data = response.data;
         print(data['action']);
         print(data['device_name']);
@@ -257,12 +295,51 @@ class _MyWidgetState extends State<HomeScreen> {
     }
   }
 
-
+  void onUserRegister(Usermodel user){
+    saveUserData({
+      'username': user.username,
+      'email': user.email,
+      'phonenumber': user.phonenumber,
+      'gender': user.gender,
+    });
+     AlertInfo.show(
+      context: context,
+      text: 'Account created !',
+      typeInfo: TypeInfo.success,
+      backgroundColor: Colors.white,
+      textColor: Colors.grey.shade800,
+    );
+    final userData = getUserData();
+      setState(() {
+        user = Usermodel(username: userData?['username'], email: userData?['email'], phonenumber: userData?['phonenumber'], gender: userData?['gender']);
+        isFound = true;
+      });
+  }
   @override
   void initState(){
     super.initState();
     Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
     devices = box.values.toList();
+    // saveUserData({
+    //   'username': 'Alexo',
+    //   'email': 'alexo@gmail.com',
+    //   'phonenumber': '0677401846',
+    //   'gender': 'male',
+    // });
+    final userData = getUserData();
+    if(userData != null && userData.isNotEmpty) {
+      user = Usermodel(username: userData['username'], email: userData['email'], phonenumber: userData['phonenumber'], gender: userData['gender']);
+      setState(() {
+        isFound = true;
+      });
+    }
+    else{
+      user = Usermodel(username: '', email: '', phonenumber: '', gender: '');
+      setState(() {
+        isFound = false;
+      });
+    }
+    print(user);
     
     // box.deleteAt(2);
   }
@@ -273,7 +350,9 @@ class _MyWidgetState extends State<HomeScreen> {
   }
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
+    return  !isFound
+    ? Register(onUserRegister: onUserRegister,)
+    : Scaffold(
        appBar: AppBar(
               toolbarHeight: 10,
               backgroundColor: Theme.of(context).colorScheme.surface,
@@ -398,7 +477,7 @@ class _MyWidgetState extends State<HomeScreen> {
               ),
             ),
             body: index == 0
-                ? Mainscreen(devices: devices, onDeviceUpdate: onDeviceUpdate,)
+                ? Mainscreen(devices: devices, onDeviceUpdate: onDeviceUpdate)
                 : Deviceslist(devices: devices, onDeviceDelete: onDeviceDelete, onDeviceInsert: onDeviceInsert,)
     );
   }

@@ -68,12 +68,6 @@ class _MainscreenState extends State<Mainscreen> {
   @override
   void initState() {
     super.initState();
-    saveUserData({
-      'username': 'Alexo',
-      'email': 'alexo@gmail.com',
-      'phonenumber': '0677401846',
-      'gender': 'male',
-    });
     devices = List.from(widget.devices);
     final userData = getUserData();
     user = Usermodel(username: userData?['username'], email: userData?['email'], phonenumber: userData?['phonenumber'], gender: userData?['gender']);

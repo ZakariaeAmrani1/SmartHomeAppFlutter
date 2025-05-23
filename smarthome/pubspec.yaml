@@ -50,6 +50,7 @@ dependencies:
   http: ^1.4.0
   record: ^6.0.0
   dio: ^5.8.0+1
+  welcomescreenflutter: ^0.0.5
 
 dev_dependencies:
   flutter_test:

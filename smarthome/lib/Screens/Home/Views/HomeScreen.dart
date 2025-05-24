@@ -1,4 +1,5 @@
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -16,6 +17,7 @@ import 'package:smarthome/Screens/Home/Views/MainScreen.dart';
 import 'package:smarthome/Screens/Home/Views/Register.dart';
 import 'package:smarthome/models/deviceModel.dart';
 import 'package:smarthome/models/userModel.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 
 
@@ -36,6 +38,7 @@ class _MyWidgetState extends State<HomeScreen> {
   bool isreloading = true;
   bool isloading = false;
   bool isFound = false;
+  String ipAddress = '';
   // String _text = "turn on the living room lights";
   
   void saveUserData(Map<String, dynamic> userData) {
@@ -62,7 +65,9 @@ class _MyWidgetState extends State<HomeScreen> {
       updateUserData({'email': newuser.email});
       updateUserData({'phonenumber': newuser.phonenumber});
       updateUserData({'gender': newuser.gender});
+      updateUserData({'ipAddress': newuser.ipAddress});
       user = newuser;
+      ipAddress = user.ipAddress;
     });
     AlertInfo.show(
         context: context,
@@ -77,7 +82,7 @@ class _MyWidgetState extends State<HomeScreen> {
       setState(() {
         isreloading = true;
       });
-      final url = Uri.parse("http://192.168.11.137:8000/devices/");
+      final url = Uri.parse("http://$ipAddress:8000/devices/");
 
       final response = await http.post(
         url,
@@ -111,7 +116,7 @@ class _MyWidgetState extends State<HomeScreen> {
       setState(() {
         isreloading = true;
       });
-      final response = await http.delete(Uri.parse("http://192.168.11.137:8000/devices/$index"));
+      final response = await http.delete(Uri.parse("http://$ipAddress:8000/devices/$index"));
       if (response.statusCode == 200) {
             devices = await fetchDevices();
              AlertInfo.show(
@@ -138,13 +143,14 @@ class _MyWidgetState extends State<HomeScreen> {
     }
 
     void onDeviceUpdate(bool state, String index) async {
-      final response = await http.put(Uri.parse("http://192.168.11.137:8000/devices/$index"),
+      final response = await http.put(Uri.parse("http://$ipAddress:8000/devices/$index"),
             headers: {"Content-Type": "application/json"},
             body: jsonEncode({
               'state': state
             }),
           );
        if (response.statusCode == 200) {
+               devices = await fetchDevices();
               state ? AlertInfo.show(
                 context: context,
                 text: 'Device Turned On.',
@@ -185,7 +191,7 @@ class _MyWidgetState extends State<HomeScreen> {
 
   Future<String> getDeviceIdByName(String deviceName) async {
    final response = await http.get(
-      Uri.parse("http://192.168.11.137:8000/devices/name?name=$deviceName"),
+      Uri.parse("http://$ipAddress:8000/devices/name?name=$deviceName"),
    );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -236,7 +242,7 @@ class _MyWidgetState extends State<HomeScreen> {
         'audio': await MultipartFile.fromFile(audioFile.path, filename: 'audio.wav'),
       });
 
-      final response = await dio.post('http://192.168.11.137:5000/predict_intent', data: formData);
+      final response = await dio.post('http://$ipAddress:5000/predict_intent', data: formData);
       final data = response.data;
         print(data['action']);
         print(data['device_name']);
@@ -322,6 +328,7 @@ class _MyWidgetState extends State<HomeScreen> {
       'email': user.email,
       'phonenumber': user.phonenumber,
       'gender': user.gender,
+      'ipAddress': user.ipAddress,
     });
      AlertInfo.show(
       context: context,
@@ -332,53 +339,99 @@ class _MyWidgetState extends State<HomeScreen> {
     );
     final userData = getUserData();
       setState(() {
-        user = Usermodel(username: userData?['username'], email: userData?['email'], phonenumber: userData?['phonenumber'], gender: userData?['gender']);
+        user = Usermodel(username: userData?['username'], email: userData?['email'], phonenumber: userData?['phonenumber'], gender: userData?['gender'], ipAddress: userData?['ipAddress']);
         isFound = true;
+        ipAddress = user.ipAddress;
+        fetchDevices().then((fetchedDevices) {
+          setState(() {
+            devices = fetchedDevices;
+            isreloading = false;
+          });
+        });
       });
   }
-
+void onRefresh() async {
+    setState(() {
+      fetchDevices().then((fetchedDevices) {
+          setState(() {
+            devices = fetchedDevices;
+            isreloading = false;
+          });
+        });
+    });
+  }
   Future<List<DeviceModel>> fetchDevices() async {
-  final response = await http.get(Uri.parse("http://192.168.11.137:8000/devices"));
-  late List<DeviceModel> newdevices = [];
-  if (response.statusCode == 200) {
-    List<dynamic> jsonList = json.decode(response.body);
-    // Store new data
-    for (var json in jsonList) {
-      setState(() {
-        newdevices.add(DeviceModel(id:json['_id'], typeId:json['typeId'], name: json['name'], imageUrl: json['imageUrl'], imageUrl1: json['imageUrl1'], color: json['color'], state: json['state'], port: json['port']));
-      });
-    }                                                         
-  }
-  return newdevices;
-}
+    late List<DeviceModel> newdevices = [];
+    try {
+      final response = await http.get(Uri.parse("http://$ipAddress:8000/devices")).timeout(const Duration(seconds: 5));
 
+        if (response.statusCode == 200) {
+           List<dynamic> jsonList = json.decode(response.body);
+          for (var json in jsonList) {
+            setState(() {
+              newdevices.add(DeviceModel(id:json['_id'], typeId:json['typeId'], name: json['name'], imageUrl: json['imageUrl'], imageUrl1: json['imageUrl1'], color: json['color'], state: json['state'], port: json['port']));
+            });
+          }    
+        } 
+      } on TimeoutException catch (_) {
+        AlertInfo.show(
+            context: context,
+            text: 'Server not responding',
+            typeInfo: TypeInfo.error,
+            backgroundColor: Colors.white,
+            textColor: Colors.grey.shade800,
+          );
+      } catch (e) {
+        print("Error fetching devices: $e");
+      }
+    return newdevices;
+  }
+
+  void connectWS(){
+    final channel = WebSocketChannel.connect(
+      Uri.parse('ws://$ipAddress:8000/ws'),
+    );
+
+    channel.stream.listen((message) {
+      if(message == "refresh"){
+        setState(() {
+          fetchDevices().then((fetchedDevices) {
+          setState(() {
+            devices = fetchedDevices;
+            isreloading = false;
+          });
+        });
+        });
+      }
+    });
+  }
 
   @override
   void initState(){
     super.initState();
-    getDeviceIdByName("allo");
-    fetchDevices().then((fetchedDevices) {
-      setState(() {
-        devices = fetchedDevices;
-        isreloading = false;
-      });
-    });
     final userData = getUserData();
     if(userData != null && userData.isNotEmpty) {
-      user = Usermodel(username: userData['username'], email: userData['email'], phonenumber: userData['phonenumber'], gender: userData['gender']);
+      user = Usermodel(username: userData['username'], email: userData['email'], phonenumber: userData['phonenumber'], gender: userData['gender'], ipAddress: userData['ipAddress'] );
       setState(() {
+        ipAddress = user.ipAddress;
         isFound = true;
+        fetchDevices().then((fetchedDevices) {
+          setState(() {
+            devices = fetchedDevices;
+            isreloading = false;
+          });
+        });
       });
+      connectWS();
     }
     else{
-      user = Usermodel(username: '', email: '', phonenumber: '', gender: '');
+      user = Usermodel(username: '', email: '', phonenumber: '', gender: '', ipAddress: '');
       setState(() {
         isFound = false;
       });
     }
-    print(user);
     
-    // box.deleteAt(2);
+    
   }
   @override
   void dispose(){
@@ -513,15 +566,9 @@ class _MyWidgetState extends State<HomeScreen> {
                 : Container()
               ),
             ),
-            body: isreloading 
-              ? Center(
-                child: LoadingAnimationWidget.threeRotatingDots(
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 40,
-                    ),
-              ):
+            body: 
               index == 0
-                ? Mainscreen(devices: devices, onDeviceUpdate: onDeviceUpdate)
+                ? Mainscreen(devices: devices, onDeviceUpdate: onDeviceUpdate, onUserUpdate: onUserUpdate, isreloading: isreloading, onRefresh: onRefresh,)
                 : Deviceslist(devices: devices, onDeviceDelete: onDeviceDelete, onDeviceInsert: onDeviceInsert,)
     );
   }

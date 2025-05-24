@@ -5,6 +5,7 @@ class Usermodel {
    String email;
    String phonenumber;
    String gender;
+   String ipAddress;
   // final String imageUrl;
 
   Usermodel({
@@ -12,6 +13,7 @@ class Usermodel {
     required this.email,
     required this.phonenumber,
     required this.gender,
+    required this.ipAddress,
     // required this.imageUrl,
   });
 }

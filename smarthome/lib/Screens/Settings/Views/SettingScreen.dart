@@ -245,6 +245,40 @@ class _SettingscreenState extends State<Settingscreen> {
                     ),
                   ),
                 ),
+                    SizedBox(height: 20,),
+                     Container(
+                      height: 55,
+                      width: MediaQuery.of(context).size.width / 1.12,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: TextFormField(
+                        initialValue: widget.user.ipAddress,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                          hintText: 'Ip Address',
+                          hintStyle: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                          prefixIcon: Icon(
+                            CupertinoIcons.location,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(16),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            newuser.ipAddress = value;
+                          });
+                        },
+                      ),
+                    ),
               ],
             ),
             Container(

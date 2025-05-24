@@ -13,7 +13,7 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
-  Usermodel newuser = Usermodel(username: "", email: "", phonenumber: "", gender: "male");
+  Usermodel newuser = Usermodel(username: "", email: "", phonenumber: "", gender: "male", ipAddress: "");
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -216,6 +216,39 @@ class _RegisterState extends State<Register> {
                         ),
                       ),
                     ),
+                    SizedBox(height: 20,),
+                     Container(
+                      height: 55,
+                      width: MediaQuery.of(context).size.width / 1.12,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                          hintText: 'Ip Address',
+                          hintStyle: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                          prefixIcon: Icon(
+                            CupertinoIcons.location,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(16),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            newuser.ipAddress = value;
+                          });
+                        },
+                      ),
+                    ),
               ],
             ),
               Container(
@@ -225,7 +258,7 @@ class _RegisterState extends State<Register> {
                   ),
                   child: ElevatedButton(
                     onPressed: () {
-                      if(newuser.email == "" || newuser.username == "" || newuser.phonenumber == "" || newuser.gender == "")
+                      if(newuser.email == "" || newuser.username == "" || newuser.phonenumber == "" || newuser.gender == "" || newuser.ipAddress == "")
                       {
                           AlertInfo.show(
                             context: context,

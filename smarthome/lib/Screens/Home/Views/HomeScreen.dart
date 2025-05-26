@@ -9,6 +9,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import 'package:just_audio/just_audio.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
@@ -39,6 +40,7 @@ class _MyWidgetState extends State<HomeScreen> {
   bool isloading = false;
   bool isFound = false;
   String ipAddress = '';
+  late AudioPlayer _player;
   // String _text = "turn on the living room lights";
   
   void saveUserData(Map<String, dynamic> userData) {
@@ -214,10 +216,12 @@ class _MyWidgetState extends State<HomeScreen> {
     else {
       bool state = action.contains("on");
       onDeviceUpdate(state, deviceID);
-      Box<DeviceModel> box = Hive.box<DeviceModel>('devicesBox');
-      setState(() async {
-        devices = await fetchDevices();
-      });
+      fetchDevices().then((fetchedDevices) {
+          setState(() {
+            devices = fetchedDevices;
+            isreloading = false;
+          });
+        });
     }
     setState(() {
       _isListening = 0;
@@ -242,17 +246,17 @@ class _MyWidgetState extends State<HomeScreen> {
         'audio': await MultipartFile.fromFile(audioFile.path, filename: 'audio.wav'),
       });
 
-      final response = await dio.post('http://$ipAddress:5000/predict_intent', data: formData);
+      final response = await dio.post('http://$ipAddress:8000/predict_intent', data: formData);
       final data = response.data;
-        print(data['action']);
-        print(data['device_name']);
-        if(data['action'].contains('on') || data['action'].contains('off')){
-          if(data['device_name'] != null){
-            doAction(data['action'], data['device_name']);
+      print(data);
+        if(data['action']!= null){
+          if(data['action'].contains('on') || data['action'].contains('off')){
+            if(data['device_name'] != null){
+              doAction(data['action'], data['device_name']);
+            }
           }
-        }
-        else{
-           AlertInfo.show(
+          else{
+          AlertInfo.show(
             context: context,
             text: 'Device not found. Please provide more details!',
             typeInfo: TypeInfo.error,
@@ -260,27 +264,26 @@ class _MyWidgetState extends State<HomeScreen> {
             textColor: Colors.grey.shade800,
           );
           setState(() {
-             _isListening = 0;
+            _isListening = 0;
+          });
+        }
+        }
+        else{
+          AlertInfo.show(
+            context: context,
+            text: 'Device not found. Please provide more details!',
+            typeInfo: TypeInfo.error,
+            backgroundColor: Colors.white,
+            textColor: Colors.grey.shade800,
+          );
+          setState(() {
+            _isListening = 0;
           });
         }
 }
 
   void _listen() async {
     if (_isListening == 0) {
-      // bool available = await _speech.initialize(
-      //   onStatus: (status) => print('Status: $status'),
-      //   onError: (error) => print('Error: $error'),
-      // );
-      // if (available) {
-      //   setState(() => _isListening = 1);
-      //   _speech.listen(
-      //     localeId: 'en_US', 
-      //     onResult: (result) => setState(() {
-      //       _text = result.recognizedWords;
-      //       print(_text);
-      //     }),
-      //   );
-      // }
       await startRecording();
       setState(() {
         _isListening = 1;
@@ -292,33 +295,6 @@ class _MyWidgetState extends State<HomeScreen> {
         final audioFile = File('/data/user/0/com.example.smarthome/cache/audio.wav');
         await transcribeAudio(audioFile);
       }
-      // _speech.stop();
-      //   print("sending: $_text ");
-      //   final response = await http.post(
-      //     Uri.parse('http://192.168.11.114:5000/predict_intent'),
-      //     headers: {"Content-Type": "application/json"},
-      //     body: jsonEncode({"text": _text}),
-      //   );
-      //   var data = jsonDecode(response.body);
-      //   print(data['action']);
-      //   print(data['device_name']);
-      //   if(data['action'].contains('on') || data['action'].contains('off')){
-      //     if(data['device_name'] != null){
-      //       doAction(data['action'], data['device_name']);
-      //     }
-      //   }
-      //   else{
-      //      AlertInfo.show(
-      //       context: context,
-      //       text: 'Device not found. Please provide more details!',
-      //       typeInfo: TypeInfo.error,
-      //       backgroundColor: Colors.white,
-      //       textColor: Colors.grey.shade800,
-      //     );
-      //     setState(() {
-      //        _isListening = 0;
-      //     });
-      //   }
     }
   }
 
@@ -405,6 +381,14 @@ void onRefresh() async {
       }
     });
   }
+  Future<void> _playStartSound(String path) async {
+    try {
+      await _player.setAsset(path); // or .setUrl(...) for network files
+      await _player.play();
+    } catch (e) {
+      print('Error playing audio: $e');
+    }
+  }
 
   @override
   void initState(){
@@ -423,6 +407,7 @@ void onRefresh() async {
         });
       });
       connectWS();
+      _player = AudioPlayer();
     }
     else{
       user = Usermodel(username: '', email: '', phonenumber: '', gender: '', ipAddress: '');

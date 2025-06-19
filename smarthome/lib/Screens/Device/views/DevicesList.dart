@@ -2,12 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:smarthome/Screens/Device/views/AddDevice.dart';
 import 'package:smarthome/models/deviceModel.dart';
+import 'package:smarthome/models/userModel.dart';
 
 class Deviceslist extends StatefulWidget {
-  const Deviceslist({super.key, required this.devices, required this.onDeviceDelete, required this.onDeviceInsert});
+  const Deviceslist({super.key, required this.devices, required this.onDeviceDelete, required this.onDeviceInsert, required this.user});
   final List<DeviceModel> devices;
   final Function(String index) onDeviceDelete;
   final Function( DeviceModel device) onDeviceInsert;
+  final Usermodel user;
   @override
   State<Deviceslist> createState() => _DeviceslistState();
 }
@@ -34,7 +36,7 @@ class _DeviceslistState extends State<Deviceslist> {
                                   context,
                                   MaterialPageRoute<void>(
                                     builder: (BuildContext context) =>
-                                        Adddevice(onDeviceInsert: widget.onDeviceInsert),
+                                        Adddevice(onDeviceInsert: widget.onDeviceInsert, user: widget.user,),
                                   ),
                                   );
                               },

@@ -12,6 +12,8 @@ import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:quickalert/models/quickalert_type.dart';
+import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:record/record.dart';
 import 'package:smarthome/Screens/Device/views/DevicesList.dart';
 import 'package:smarthome/Screens/Home/Views/MainScreen.dart';
@@ -41,6 +43,7 @@ class _MyWidgetState extends State<HomeScreen> {
   bool isFound = false;
   String ipAddress = '';
   late AudioPlayer _player;
+  bool warning = true;
   // String _text = "turn on the living room lights";
   
   void saveUserData(Map<String, dynamic> userData) {
@@ -327,6 +330,7 @@ class _MyWidgetState extends State<HomeScreen> {
       });
   }
 void onRefresh() async {
+    connectWS();
     setState(() {
       fetchDevices().then((fetchedDevices) {
           setState(() {
@@ -369,6 +373,7 @@ void onRefresh() async {
     );
 
     channel.stream.listen((message) {
+      print(message);
       if(message == "refresh"){
         setState(() {
           fetchDevices().then((fetchedDevices) {
@@ -379,8 +384,27 @@ void onRefresh() async {
         });
         });
       }
+      else if(message=="gasWarning"){
+        QuickAlert.show(
+          context: context,
+          type: QuickAlertType.warning,
+          text: 'You have a gas leak in your kitchen',
+          confirmBtnColor: Theme.of(context).colorScheme.primary,
+          onConfirmBtnTap: () async {
+              final url = Uri.parse("http://$ipAddress:8000/gasAlert");
+
+              final response = await http.post(
+                url,
+                headers: {"Content-Type": "application/json"},
+                body: jsonEncode({"alert": "user confirmation"}),
+              );
+              Navigator.of(context, rootNavigator: true).pop();
+          }
+        );
+      }
     });
   }
+
   Future<void> _playStartSound(String path) async {
     try {
       await _player.setAsset(path); // or .setUrl(...) for network files
@@ -553,8 +577,8 @@ void onRefresh() async {
             ),
             body: 
               index == 0
-                ? Mainscreen(devices: devices, onDeviceUpdate: onDeviceUpdate, onUserUpdate: onUserUpdate, isreloading: isreloading, onRefresh: onRefresh,)
-                : Deviceslist(devices: devices, onDeviceDelete: onDeviceDelete, onDeviceInsert: onDeviceInsert,)
+                ? Mainscreen(devices: devices, onDeviceUpdate: onDeviceUpdate, onUserUpdate: onUserUpdate, isreloading: isreloading, onRefresh: onRefresh,warning:warning)
+                : Deviceslist(devices: devices, onDeviceDelete: onDeviceDelete, onDeviceInsert: onDeviceInsert, user: user,)
     );
   }
 }

@@ -10,10 +10,12 @@ import 'package:http/http.dart' as http;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:smarthome/data/deviceTypes.dart';
 import 'package:smarthome/models/deviceModel.dart';
+import 'package:smarthome/models/userModel.dart';
 
 class Adddevice extends StatefulWidget {
-  const Adddevice({super.key, required this.onDeviceInsert});
+  const Adddevice({super.key, required this.onDeviceInsert, required this.user});
   final Function( DeviceModel device) onDeviceInsert;
+  final Usermodel user;
 
   @override
   State<Adddevice> createState() => _AdddeviceState();
@@ -27,11 +29,12 @@ class _AdddeviceState extends State<Adddevice> {
   late DeviceModel device;
   bool readOnly = true;
   bool isloading = false;
+  late String ipAddress;
 
 
    Future<bool> getDeviceIdByName(String deviceName) async {
    final response = await http.get(
-      Uri.parse("http://192.168.11.137:8000/devices/name?name=$deviceName"),
+      Uri.parse("http://$ipAddress:8000/devices/name?name=$deviceName"),
    );
     if (response.statusCode == 200) {
        return true;                                           
@@ -41,7 +44,7 @@ class _AdddeviceState extends State<Adddevice> {
 
      Future<bool> getDeviceIdByPort(int port) async {
    final response = await http.get(
-      Uri.parse("http://192.168.11.137:8000/devices/port?port=$port"),
+      Uri.parse("http://$ipAddress:8000/devices/port?port=$port"),
    );
     if (response.statusCode == 200) {
        return true;                                           
@@ -64,6 +67,7 @@ class _AdddeviceState extends State<Adddevice> {
       port: 0,
     );
      _nameController = TextEditingController(text: device.name);
+     ipAddress = widget.user.ipAddress;
     });
   }
 

@@ -10,12 +10,13 @@ import 'package:smarthome/models/userModel.dart';
 import 'package:smarthome/models/deviceModel.dart';
 
 class Mainscreen extends StatefulWidget {
-  const Mainscreen({super.key, required this.devices, required this.onDeviceUpdate, required this.onUserUpdate, required this.isreloading, required this.onRefresh});
+  const Mainscreen({super.key, required this.devices, required this.onDeviceUpdate, required this.onUserUpdate, required this.isreloading, required this.onRefresh, required this.warning});
   final List<DeviceModel> devices;
   final Function(bool state, String index) onDeviceUpdate;
   final Function( Usermodel user) onUserUpdate;
   final bool  isreloading;
   final Function() onRefresh;
+  final bool warning;
   @override
   State<Mainscreen> createState() => _MainscreenState();
 }
@@ -48,6 +49,9 @@ class _MainscreenState extends State<Mainscreen> {
     final userData = getUserData();
     user = Usermodel(username: userData?['username'], email: userData?['email'], phonenumber: userData?['phonenumber'], gender: userData?['gender'], ipAddress: userData?['ipAddress']);
   }
+
+
+
 
   @override
   Widget build(BuildContext context) {
